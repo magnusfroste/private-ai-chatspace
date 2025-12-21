@@ -62,11 +62,31 @@ async def list_workspaces(
 ):
     if current_user.role == "admin":
         result = await db.execute(select(Workspace))
+        workspaces = result.scalars().all()
     else:
         result = await db.execute(
             select(Workspace).where(Workspace.owner_id == current_user.id)
         )
-    return result.scalars().all()
+        workspaces = result.scalars().all()
+        
+        # Auto-create a default workspace for new users with no workspaces
+        if not workspaces:
+            default_workspace = Workspace(
+                name="My Workspace",
+                description="Your personal workspace",
+                system_prompt=settings.DEFAULT_SYSTEM_PROMPT,
+                owner_id=current_user.id
+            )
+            db.add(default_workspace)
+            await db.commit()
+            await db.refresh(default_workspace)
+            
+            # Create Qdrant collection for the new workspace
+            await rag_service.ensure_collection(default_workspace.id)
+            
+            workspaces = [default_workspace]
+    
+    return workspaces
 
 
 @router.post("", response_model=WorkspaceResponse)

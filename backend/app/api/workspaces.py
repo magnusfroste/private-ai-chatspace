@@ -81,9 +81,6 @@ async def list_workspaces(
             await db.commit()
             await db.refresh(default_workspace)
             
-            # Create Qdrant collection for the new workspace
-            await rag_service.ensure_collection(default_workspace.id)
-            
             workspaces = [default_workspace]
     
     return workspaces
@@ -105,7 +102,7 @@ async def create_workspace(
     await db.commit()
     await db.refresh(workspace)
     
-    await rag_service.ensure_collection(workspace.id)
+    # Qdrant collection is created lazily when first document is embedded
     
     return workspace
 

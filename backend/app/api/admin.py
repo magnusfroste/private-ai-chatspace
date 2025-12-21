@@ -324,3 +324,85 @@ async def get_system_overview(
         workspaces=workspaces_info,
         total_rag_collections=total_collections
     )
+
+
+@router.get("/test/llm")
+async def test_llm_connection(
+    admin: User = Depends(get_current_admin)
+):
+    """Test LLM connection and list available models"""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"{settings.LLM_BASE_URL}/models",
+                headers={"Authorization": f"Bearer {settings.LLM_API_KEY}"} if settings.LLM_API_KEY else {}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                models = [m.get("id", m) for m in data.get("data", [])]
+                return {
+                    "status": "connected",
+                    "url": settings.LLM_BASE_URL,
+                    "models": models,
+                    "configured_model": settings.LLM_MODEL
+                }
+            else:
+                return {"status": "error", "url": settings.LLM_BASE_URL, "error": f"HTTP {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"status": "error", "url": settings.LLM_BASE_URL, "error": str(e)}
+
+
+@router.get("/test/embedder")
+async def test_embedder_connection(
+    admin: User = Depends(get_current_admin)
+):
+    """Test Embedder connection and list available models"""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"{settings.EMBEDDER_BASE_URL}/models",
+                headers={"Authorization": f"Bearer {settings.EMBEDDER_API_KEY}"} if settings.EMBEDDER_API_KEY else {}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                models = [m.get("id", m) for m in data.get("data", [])]
+                return {
+                    "status": "connected",
+                    "url": settings.EMBEDDER_BASE_URL,
+                    "models": models,
+                    "configured_model": settings.EMBEDDER_MODEL,
+                    "embedding_dimension": settings.EMBEDDING_DIMENSION
+                }
+            else:
+                return {"status": "error", "url": settings.EMBEDDER_BASE_URL, "error": f"HTTP {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"status": "error", "url": settings.EMBEDDER_BASE_URL, "error": str(e)}
+
+
+@router.get("/test/qdrant")
+async def test_qdrant_connection(
+    admin: User = Depends(get_current_admin)
+):
+    """Test Qdrant connection and list collections"""
+    try:
+        collections = rag_service.client.get_collections()
+        collection_info = []
+        for c in collections.collections:
+            try:
+                info = rag_service.client.get_collection(c.name)
+                collection_info.append({
+                    "name": c.name,
+                    "points_count": info.points_count,
+                    "vectors_count": info.vectors_count
+                })
+            except:
+                collection_info.append({"name": c.name, "points_count": "?", "vectors_count": "?"})
+        
+        return {
+            "status": "connected",
+            "url": settings.QDRANT_URL,
+            "collections": collection_info,
+            "total_collections": len(collection_info)
+        }
+    except Exception as e:
+        return {"status": "error", "url": settings.QDRANT_URL, "error": str(e)}

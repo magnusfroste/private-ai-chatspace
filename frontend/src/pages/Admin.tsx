@@ -67,6 +67,17 @@ interface SystemOverview {
   total_rag_collections: number
 }
 
+interface TestResult {
+  status: string
+  url: string
+  models?: string[]
+  configured_model?: string
+  embedding_dimension?: number
+  collections?: Array<{ name: string; points_count: number; vectors_count: number }>
+  total_collections?: number
+  error?: string
+}
+
 export default function Admin() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<'system' | 'stats' | 'users' | 'logs'>('system')
@@ -77,6 +88,8 @@ export default function Admin() {
   const [overview, setOverview] = useState<SystemOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [testResults, setTestResults] = useState<{ llm?: TestResult; embedder?: TestResult; qdrant?: TestResult }>({})
+  const [testing, setTesting] = useState<{ llm: boolean; embedder: boolean; qdrant: boolean }>({ llm: false, embedder: false, qdrant: false })
 
   const [showNewUser, setShowNewUser] = useState(false)
   const [newUser, setNewUser] = useState({ email: '', password: '', name: '', role: 'user' })
@@ -121,6 +134,26 @@ export default function Admin() {
       console.error('Failed to refresh health:', err)
     } finally {
       setRefreshing(false)
+    }
+  }
+
+  const testService = async (service: 'llm' | 'embedder' | 'qdrant') => {
+    setTesting(prev => ({ ...prev, [service]: true }))
+    setTestResults(prev => ({ ...prev, [service]: undefined }))
+    try {
+      let result: TestResult
+      if (service === 'llm') {
+        result = await api.admin.testLlm()
+      } else if (service === 'embedder') {
+        result = await api.admin.testEmbedder()
+      } else {
+        result = await api.admin.testQdrant()
+      }
+      setTestResults(prev => ({ ...prev, [service]: result }))
+    } catch (err) {
+      setTestResults(prev => ({ ...prev, [service]: { status: 'error', url: '', error: String(err) } }))
+    } finally {
+      setTesting(prev => ({ ...prev, [service]: false }))
     }
   }
 
@@ -246,6 +279,46 @@ export default function Admin() {
                         )}
                         {service.error && (
                           <p className="text-xs text-red-400 truncate">{service.error}</p>
+                        )}
+                        <button
+                          onClick={() => testService(service.name.toLowerCase() as 'llm' | 'embedder' | 'qdrant')}
+                          disabled={testing[service.name.toLowerCase() as keyof typeof testing]}
+                          className="mt-2 w-full px-2 py-1 bg-dark-700 hover:bg-dark-600 text-xs text-dark-300 rounded disabled:opacity-50"
+                        >
+                          {testing[service.name.toLowerCase() as keyof typeof testing] ? 'Testing...' : 'Test Connection'}
+                        </button>
+                        {testResults[service.name.toLowerCase() as keyof typeof testResults] && (
+                          <div className="mt-2 p-2 bg-dark-900 rounded text-xs">
+                            {testResults[service.name.toLowerCase() as keyof typeof testResults]?.models && (
+                              <div className="mb-1">
+                                <span className="text-dark-500">Models: </span>
+                                <span className="text-green-400">{testResults[service.name.toLowerCase() as keyof typeof testResults]?.models?.join(', ')}</span>
+                              </div>
+                            )}
+                            {testResults[service.name.toLowerCase() as keyof typeof testResults]?.configured_model && (
+                              <div className="mb-1">
+                                <span className="text-dark-500">Configured: </span>
+                                <span className="text-blue-400">{testResults[service.name.toLowerCase() as keyof typeof testResults]?.configured_model}</span>
+                              </div>
+                            )}
+                            {testResults[service.name.toLowerCase() as keyof typeof testResults]?.embedding_dimension && (
+                              <div className="mb-1">
+                                <span className="text-dark-500">Dimension: </span>
+                                <span className="text-blue-400">{testResults[service.name.toLowerCase() as keyof typeof testResults]?.embedding_dimension}</span>
+                              </div>
+                            )}
+                            {testResults[service.name.toLowerCase() as keyof typeof testResults]?.collections && (
+                              <div>
+                                <span className="text-dark-500">Collections: </span>
+                                <span className="text-green-400">
+                                  {testResults[service.name.toLowerCase() as keyof typeof testResults]?.collections?.map(c => `${c.name} (${c.points_count})`).join(', ') || 'None'}
+                                </span>
+                              </div>
+                            )}
+                            {testResults[service.name.toLowerCase() as keyof typeof testResults]?.error && (
+                              <div className="text-red-400">{testResults[service.name.toLowerCase() as keyof typeof testResults]?.error}</div>
+                            )}
+                          </div>
                         )}
                       </div>
                     ))}

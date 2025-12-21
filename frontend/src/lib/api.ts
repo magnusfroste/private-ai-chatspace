@@ -168,5 +168,27 @@ export const api = {
       }>
       total_rag_collections: number
     }>('/admin/system/overview'),
+    testLlm: () => fetchApi<{
+      status: string
+      url: string
+      models?: string[]
+      configured_model?: string
+      error?: string
+    }>('/admin/test/llm'),
+    testEmbedder: () => fetchApi<{
+      status: string
+      url: string
+      models?: string[]
+      configured_model?: string
+      embedding_dimension?: number
+      error?: string
+    }>('/admin/test/embedder'),
+    testQdrant: () => fetchApi<{
+      status: string
+      url: string
+      collections?: Array<{ name: string; points_count: number; vectors_count: number }>
+      total_collections?: number
+      error?: string
+    }>('/admin/test/qdrant'),
   },
 }

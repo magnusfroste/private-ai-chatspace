@@ -76,8 +76,10 @@ export default function DocumentManager({ workspaceId }: DocumentManagerProps) {
     try {
       const updated = await api.documents.embed(documentId)
       setDocuments(documents.map((d) => (d.id === documentId ? updated : d)))
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to embed document:', err)
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      alert(`Embed failed: ${message}`)
     } finally {
       setEmbedding(null)
     }
@@ -86,10 +88,15 @@ export default function DocumentManager({ workspaceId }: DocumentManagerProps) {
   const handleEmbedAll = async () => {
     setEmbeddingAll(true)
     try {
-      await api.documents.embedAll(workspaceId)
+      const result = await api.documents.embedAll(workspaceId)
       await loadDocuments()
-    } catch (err) {
+      if (result.errors && result.errors.length > 0) {
+        alert(`Embedded ${result.embedded}/${result.total}. Errors: ${result.errors.map((e: any) => e.error).join(', ')}`)
+      }
+    } catch (err: unknown) {
       console.error('Failed to embed all documents:', err)
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      alert(`Embed all failed: ${message}`)
     } finally {
       setEmbeddingAll(false)
     }

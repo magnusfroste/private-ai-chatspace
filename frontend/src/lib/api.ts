@@ -130,7 +130,7 @@ export const api = {
     embed: (documentId: number) =>
       fetchApi<Document>(`/documents/${documentId}/embed`, { method: 'POST' }),
     embedAll: (workspaceId: number) =>
-      fetchApi<{ embedded: number; total: number }>(`/documents/workspace/${workspaceId}/embed-all`, { method: 'POST' }),
+      fetchApi<{ embedded: number; total: number; errors?: Array<{ document_id: number; error: string }> }>(`/documents/workspace/${workspaceId}/embed-all`, { method: 'POST' }),
     delete: (id: number) => fetchApi(`/documents/${id}`, { method: 'DELETE' }),
     getContent: (id: number) => fetchApi<{ content: string }>(`/documents/${id}/content`),
   },

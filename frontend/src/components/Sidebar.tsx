@@ -37,6 +37,7 @@ export default function Sidebar() {
   const [expandedWorkspaces, setExpandedWorkspaces] = useState<Set<number>>(new Set())
   const [newWorkspaceName, setNewWorkspaceName] = useState('')
   const [showNewWorkspace, setShowNewWorkspace] = useState(false)
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false)
   const [editingChatId, setEditingChatId] = useState<number | null>(null)
   const [editingChatTitle, setEditingChatTitle] = useState('')
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<number | null>(null)
@@ -75,14 +76,19 @@ export default function Sidebar() {
   }
 
   const handleCreateWorkspace = async () => {
-    if (!newWorkspaceName.trim()) return
+    if (!newWorkspaceName.trim() || isCreatingWorkspace) return
+    setIsCreatingWorkspace(true)
     try {
       const workspace = await api.workspaces.create({ name: newWorkspaceName })
       addWorkspace(workspace)
+      setCurrentWorkspace(workspace)
+      setExpandedWorkspaces((prev) => new Set([...prev, workspace.id]))
       setNewWorkspaceName('')
       setShowNewWorkspace(false)
     } catch (err) {
       console.error('Failed to create workspace:', err)
+    } finally {
+      setIsCreatingWorkspace(false)
     }
   }
 
@@ -191,9 +197,10 @@ export default function Sidebar() {
             <div className="flex gap-2 mt-2">
               <button
                 onClick={handleCreateWorkspace}
-                className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+                disabled={isCreatingWorkspace}
+                className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white text-sm rounded"
               >
-                Create
+                {isCreatingWorkspace ? 'Creating...' : 'Create'}
               </button>
               <button
                 onClick={() => setShowNewWorkspace(false)}

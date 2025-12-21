@@ -15,6 +15,7 @@ import {
   Check,
   X,
   Plus,
+  MoreVertical,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -42,10 +43,20 @@ export default function Sidebar() {
   const [editingChatTitle, setEditingChatTitle] = useState('')
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<number | null>(null)
   const [editingWorkspaceName, setEditingWorkspaceName] = useState('')
+  const [openMenuId, setOpenMenuId] = useState<string | number | null>(null)
 
   useEffect(() => {
     loadWorkspaces()
   }, [])
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null)
+    if (openMenuId !== null) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [openMenuId])
 
   useEffect(() => {
     if (currentWorkspace) {
@@ -263,25 +274,42 @@ export default function Sidebar() {
                     <FolderOpen className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate text-sm">{workspace.name}</span>
                   </button>
-                  <div className="flex items-center opacity-0 group-hover/ws:opacity-100">
+                  <div className="relative flex-shrink-0 opacity-0 group-hover/ws:opacity-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        setEditingWorkspaceId(workspace.id)
-                        setEditingWorkspaceName(workspace.name)
+                        setOpenMenuId(openMenuId === `ws-${workspace.id}` ? null : `ws-${workspace.id}`)
                       }}
                       className="p-1 text-dark-400 hover:text-white"
-                      title="Rename workspace"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <MoreVertical className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={(e) => handleDeleteWorkspace(workspace.id, e)}
-                      className="p-1 text-dark-400 hover:text-red-400"
-                      title="Delete workspace"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {openMenuId === `ws-${workspace.id}` && (
+                      <div className="absolute right-0 top-6 z-50 bg-dark-700 border border-dark-600 rounded-lg shadow-lg py-1 min-w-[120px]">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditingWorkspaceId(workspace.id)
+                            setEditingWorkspaceName(workspace.name)
+                            setOpenMenuId(null)
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-200 hover:bg-dark-600 hover:text-white"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Rename
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            handleDeleteWorkspace(workspace.id, e)
+                            setOpenMenuId(null)
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-dark-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -319,37 +347,56 @@ export default function Sidebar() {
                           </button>
                         </div>
                       ) : (
-                        <button
+                        <div
                           onClick={() => setCurrentChat(chat)}
-                          className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded text-sm ${
+                          className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded text-sm cursor-pointer ${
                             currentChat?.id === chat.id
                               ? 'bg-dark-600 text-white'
                               : 'text-dark-300 hover:bg-dark-800 hover:text-white'
                           }`}
                         >
-                          <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
                             <MessageSquare className="w-3 h-3 flex-shrink-0" />
                             <span className="truncate">{chat.title}</span>
                           </div>
-                          <div className="flex items-center opacity-0 group-hover:opacity-100">
+                          <div className="relative flex-shrink-0 opacity-0 group-hover:opacity-100">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setEditingChatId(chat.id)
-                                setEditingChatTitle(chat.title)
+                                setOpenMenuId(openMenuId === chat.id ? null : chat.id)
                               }}
                               className="p-1 text-dark-400 hover:text-white"
                             >
-                              <Pencil className="w-3 h-3" />
+                              <MoreVertical className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={(e) => handleDeleteChat(chat.id, e)}
-                              className="p-1 text-dark-400 hover:text-red-400"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
+                            {openMenuId === chat.id && (
+                              <div className="absolute right-0 top-6 z-50 bg-dark-700 border border-dark-600 rounded-lg shadow-lg py-1 min-w-[120px]">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setEditingChatId(chat.id)
+                                    setEditingChatTitle(chat.title)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-200 hover:bg-dark-600 hover:text-white"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                  Rename
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    handleDeleteChat(chat.id, e)
+                                    setOpenMenuId(null)
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-dark-600"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        </button>
+                        </div>
                       )}
                     </div>
                   ))}

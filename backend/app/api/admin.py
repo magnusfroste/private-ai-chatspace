@@ -237,12 +237,15 @@ async def check_services_health(
 ):
     """Check health of LLM, Embedder, and Qdrant services"""
     
-    async def check_service(name: str, url: str, health_path: str = "") -> ServiceStatus:
+    async def check_service(name: str, url: str, health_path: str = "", api_key: str = None) -> ServiceStatus:
         import time
         start = time.time()
         try:
+            headers = {}
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
             async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{url}{health_path}")
+                response = await client.get(f"{url}{health_path}", headers=headers)
                 latency = (time.time() - start) * 1000
                 if response.status_code == 200:
                     return ServiceStatus(name=name, status="online", url=url, latency_ms=latency)
@@ -251,8 +254,8 @@ async def check_services_health(
         except Exception as e:
             return ServiceStatus(name=name, status="offline", url=url, error=str(e))
     
-    llm_status = await check_service("LLM", settings.LLM_BASE_URL, "/models")
-    embedder_status = await check_service("Embedder", settings.EMBEDDER_BASE_URL, "/models")
+    llm_status = await check_service("LLM", settings.LLM_BASE_URL, "/models", settings.LLM_API_KEY)
+    embedder_status = await check_service("Embedder", settings.EMBEDDER_BASE_URL, "/models", settings.EMBEDDER_API_KEY)
     qdrant_status = await check_service("Qdrant", settings.QDRANT_URL, "/collections")
     
     return SystemHealthResponse(

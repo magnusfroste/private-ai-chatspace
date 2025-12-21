@@ -126,25 +126,32 @@ async def embed_document(
     if not document.markdown_path:
         raise HTTPException(status_code=400, detail="Document not converted to markdown")
     
-    if document.is_embedded:
-        await rag_service.delete_document(document.workspace_id, document.id)
-    
-    markdown_content = await document_service.read_markdown(document.markdown_path)
-    chunks = document_service.chunk_text(markdown_content)
-    
-    await rag_service.add_document(
-        workspace_id=document.workspace_id,
-        document_id=document.id,
-        chunks=chunks,
-        metadata={"filename": document.original_filename}
-    )
-    
-    document.is_embedded = True
-    document.embedded_at = datetime.utcnow()
-    await db.commit()
-    await db.refresh(document)
-    
-    return document
+    try:
+        if document.is_embedded:
+            await rag_service.delete_document(document.workspace_id, document.id)
+        
+        markdown_content = await document_service.read_markdown(document.markdown_path)
+        chunks = document_service.chunk_text(markdown_content)
+        
+        print(f"Embedding document {document_id}: {len(chunks)} chunks")
+        
+        await rag_service.add_document(
+            workspace_id=document.workspace_id,
+            document_id=document.id,
+            chunks=chunks,
+            metadata={"filename": document.original_filename}
+        )
+        
+        document.is_embedded = True
+        document.embedded_at = datetime.utcnow()
+        await db.commit()
+        await db.refresh(document)
+        
+        print(f"Document {document_id} embedded successfully")
+        return document
+    except Exception as e:
+        print(f"Embed error for document {document_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Embedding failed: {str(e)}")
 
 
 @router.post("/workspace/{workspace_id}/embed-all")
@@ -171,7 +178,10 @@ async def embed_all_documents(
     )
     documents = result.scalars().all()
     
+    print(f"Embed all: {len(documents)} documents in workspace {workspace_id}")
+    
     embedded_count = 0
+    errors = []
     for document in documents:
         try:
             if document.is_embedded:
@@ -179,6 +189,8 @@ async def embed_all_documents(
             
             markdown_content = await document_service.read_markdown(document.markdown_path)
             chunks = document_service.chunk_text(markdown_content)
+            
+            print(f"Embedding document {document.id}: {len(chunks)} chunks")
             
             await rag_service.add_document(
                 workspace_id=workspace_id,
@@ -190,12 +202,15 @@ async def embed_all_documents(
             document.is_embedded = True
             document.embedded_at = datetime.utcnow()
             embedded_count += 1
-        except Exception:
+            print(f"Document {document.id} embedded successfully")
+        except Exception as e:
+            print(f"Embed error for document {document.id}: {e}")
+            errors.append({"document_id": document.id, "error": str(e)})
             continue
     
     await db.commit()
     
-    return {"embedded": embedded_count, "total": len(documents)}
+    return {"embedded": embedded_count, "total": len(documents), "errors": errors}
 
 
 @router.get("/{document_id}/content")

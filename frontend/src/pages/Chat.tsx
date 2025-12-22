@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar'
 import ChatMessage from '../components/ChatMessage'
 import ChatInput, { ChatInputHandle } from '../components/ChatInput'
 import WorkspaceSettings from '../components/WorkspaceSettings'
+import WorkspaceSettingsSidebar from '../components/WorkspaceSettingsSidebar'
 import DocumentManager from '../components/DocumentManager'
 import NotesSidebar from '../components/NotesSidebar'
 import DocumentsSidebar from '../components/DocumentsSidebar'
@@ -30,6 +31,8 @@ export default function Chat() {
   const [showDocsSidebar, setShowDocsSidebar] = useState(false)
   const [docsExpanded, setDocsExpanded] = useState(false)
   const [docsRefreshTrigger] = useState(0)
+  const [showSettingsSidebar, setShowSettingsSidebar] = useState(false)
+  const [settingsExpanded, setSettingsExpanded] = useState(false)
   const [useRag, setUseRag] = useState(true)
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -279,7 +282,8 @@ export default function Chat() {
 
   const notesWidth = showNotes ? (notesExpanded ? 800 : 256) : 0
   const docsWidth = showDocsSidebar ? (docsExpanded ? 800 : 256) : 0
-  const totalRightMargin = notesWidth + docsWidth
+  const settingsWidth = showSettingsSidebar ? (settingsExpanded ? 800 : 256) : 0
+  const totalRightMargin = notesWidth + docsWidth + settingsWidth
 
   return (
     <div className="flex h-screen bg-dark-900">
@@ -328,8 +332,10 @@ export default function Chat() {
                   <FileText className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => setShowSettings(true)}
-                  className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
+                  onClick={() => setShowSettingsSidebar(!showSettingsSidebar)}
+                  className={`p-2 hover:bg-dark-700 rounded-lg transition-colors ${
+                    showSettingsSidebar ? 'bg-dark-700 text-white' : 'text-dark-400 hover:text-white'
+                  }`}
                   title="Settings"
                 >
                   <Settings className="w-5 h-5" />

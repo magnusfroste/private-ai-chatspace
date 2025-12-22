@@ -31,6 +31,7 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
   const [transforming, setTransforming] = useState(false)
+  const [ragAttachedNotes, setRagAttachedNotes] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (isOpen) {
@@ -151,6 +152,7 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
       
       // Upload to documents
       await api.documents.upload(workspaceId, file)
+      setRagAttachedNotes(prev => new Set([...prev, note.id]))
       alert(`"${note.title}" added to workspace documents!`)
     } catch (err) {
       console.error('Failed to attach to RAG:', err)
@@ -296,8 +298,12 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
                             e.stopPropagation()
                             handleAttachToRAG(note)
                           }}
-                          className="p-1 text-dark-400 hover:text-purple-400 hover:bg-dark-800 rounded"
-                          title="Add to RAG Documents"
+                          className={`p-1 hover:bg-dark-800 rounded ${
+                            ragAttachedNotes.has(note.id) 
+                              ? 'text-green-400' 
+                              : 'text-dark-400 hover:text-green-400'
+                          }`}
+                          title={ragAttachedNotes.has(note.id) ? "Added to RAG Documents" : "Add to RAG Documents"}
                         >
                           <FileText className="w-4 h-4" />
                         </button>

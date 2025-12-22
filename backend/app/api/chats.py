@@ -240,13 +240,23 @@ async def send_message(
     # MCP tool calling (intelligent web search)
     tools = []
     use_web_search = chat.workspace.use_web_search if chat.workspace and chat.workspace.use_web_search else False
+    print(f"[MCP DEBUG] use_web_search={use_web_search}, MCP_ENABLED={settings.MCP_ENABLED}")
+    
     if use_web_search and settings.MCP_ENABLED:
         try:
+            print(f"[MCP DEBUG] Initializing MCP service...")
             await mcp_service.initialize()
+            print(f"[MCP DEBUG] MCP initialized successfully")
+            
             tools = await mcp_service.get_available_tools()
+            print(f"[MCP DEBUG] Got {len(tools)} tools: {[t.get('name', 'unknown') for t in tools]}")
         except Exception as e:
-            print(f"MCP initialization failed: {e}")
+            print(f"[MCP DEBUG] MCP initialization failed: {e}")
+            import traceback
+            traceback.print_exc()
+            
             # Fallback to n8n if MCP fails
+            print(f"[MCP DEBUG] Falling back to n8n webhook")
             if search_agent_service.is_available():
                 web_result = await search_agent_service.search(
                     query=data.content,
@@ -302,6 +312,7 @@ async def send_message(
         try:
             # Use intelligent tool calling if MCP tools available
             if tools:
+                print(f"[MCP DEBUG] Using chat_with_tools_stream with {len(tools)} tools")
                 async for event in llm_service.chat_with_tools_stream(
                     messages=history,
                     tools=tools,
@@ -313,11 +324,13 @@ async def send_message(
                         yield f"data: {json.dumps({'content': event['content']})}\n\n"
                     elif event["type"] == "tool_call":
                         # LLM decided to use a tool (e.g., web search)
+                        print(f"[MCP DEBUG] LLM requested tool call: {event['tool_name']}")
                         try:
                             tool_result = await mcp_service.call_tool(
                                 event["tool_name"],
                                 event["arguments"]
                             )
+                            print(f"[MCP DEBUG] Tool call result: {str(tool_result)[:200]}...")
                             tool_calls_made.append({
                                 "tool": event["tool_name"],
                                 "args": event["arguments"],
@@ -325,7 +338,9 @@ async def send_message(
                             })
                             # Tool result will be fed back to LLM automatically
                         except Exception as tool_error:
-                            print(f"Tool call failed: {tool_error}")
+                            print(f"[MCP DEBUG] Tool call failed: {tool_error}")
+                            import traceback
+                            traceback.print_exc()
             else:
                 # Fallback to regular completion without tools
                 async for chunk in llm_service.chat_completion_stream(

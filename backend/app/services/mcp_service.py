@@ -242,26 +242,64 @@ class MCPService:
     
     def __init__(self):
         self.servers: Dict[str, MCPServer] = {}
-        self.config_path = Path(settings.STORAGE_PATH) / "mcp_servers.json"
+        # Use local path in development, /data in production
+        if settings.STORAGE_PATH == "/data" and not Path("/data").exists():
+            # Development mode - use local directory
+            self.config_path = Path(__file__).parent / "mcp_servers.json"
+        else:
+            self.config_path = Path(settings.STORAGE_PATH) / "mcp_servers.json"
+        self.initialized = False
+    
+    async def initialize(self):
+        """Initialize MCP service and load configuration"""
+        if self.initialized:
+            return
+        
+        await self.load_config()
+        self.initialized = True
     
     async def load_config(self):
         """Load MCP server configuration"""
         if not self.config_path.exists():
-            # Create default config
-            default_config = {
-                "mcpServers": {}
-            }
+            # Create default config from mcp_config.json
+            default_config_path = Path(__file__).parent / "mcp_config.json"
+            if default_config_path.exists():
+                with open(default_config_path) as f:
+                    default_config = json.load(f)
+            else:
+                default_config = {"mcpServers": {}}
+            
             self.config_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_path, "w") as f:
                 json.dump(default_config, f, indent=2)
-            return
         
         with open(self.config_path) as f:
             config = json.load(f)
         
+        # Substitute environment variables
+        config = self._substitute_env_vars(config)
+        
         # Initialize servers
         for name, server_config in config.get("mcpServers", {}).items():
             await self.register_server(name, server_config)
+    
+    def _substitute_env_vars(self, config: dict) -> dict:
+        """Substitute ${VAR} with environment variable values"""
+        import os
+        import re
+        
+        def substitute(obj):
+            if isinstance(obj, dict):
+                return {k: substitute(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [substitute(item) for item in obj]
+            elif isinstance(obj, str):
+                # Replace ${VAR} with os.environ.get('VAR', '')
+                pattern = r'\$\{([^}]+)\}'
+                return re.sub(pattern, lambda m: os.environ.get(m.group(1), ''), obj)
+            return obj
+        
+        return substitute(config)
     
     async def register_server(self, name: str, config: dict):
         """Register and start an MCP server"""
@@ -272,6 +310,10 @@ class MCPService:
             print(f"MCP server '{name}' started with {len(server.tools)} tools")
         except Exception as e:
             print(f"Failed to start MCP server '{name}': {e}")
+    
+    async def get_available_tools(self) -> List[dict]:
+        """Get all available tools in OpenAI format (async for consistency)"""
+        return self.get_all_tools()
     
     def get_all_tools(self) -> List[dict]:
         """Get all available tools in OpenAI format"""

@@ -149,10 +149,10 @@ async def transform_note(
     
     # Define transformation prompts
     prompts = {
-        "expand": f"Expand and elaborate on the following text with more details and examples:\n\n{note.content}",
-        "improve": f"Improve the following text by making it clearer, more professional, and better structured:\n\n{note.content}",
-        "summarize": f"Summarize the following text concisely:\n\n{note.content}",
-        "continue": f"Continue writing from where this text ends:\n\n{note.content}",
+        "expand": f"Expand and elaborate on the following text with more details and examples. IMPORTANT: Respond in the SAME LANGUAGE as the input text.\n\n{note.content}",
+        "improve": f"Improve the following text by making it clearer, more professional, and better structured. IMPORTANT: Respond in the SAME LANGUAGE as the input text.\n\n{note.content}",
+        "summarize": f"Summarize the following text concisely, keeping only the most important points. IMPORTANT: Respond in the SAME LANGUAGE as the input text.\n\n{note.content}",
+        "continue": f"Continue writing from where this text ends, maintaining the same style and tone. IMPORTANT: Respond in the SAME LANGUAGE as the input text.\n\n{note.content}",
         "translate": f"Translate the following text to English (if not English) or Swedish (if English):\n\n{note.content}"
     }
     

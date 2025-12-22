@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Download,
   MessageSquare,
-  FileText
+  FileText,
+  Info
 } from 'lucide-react'
 
 interface NotesSidebarProps {
@@ -32,6 +33,7 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
   const [editContent, setEditContent] = useState('')
   const [transforming, setTransforming] = useState(false)
   const [ragAttachedNotes, setRagAttachedNotes] = useState<Set<number>>(new Set())
+  const [showTransformInfo, setShowTransformInfo] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -229,19 +231,45 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
               placeholder="Write your note..."
             />
             
-            <div className="flex flex-wrap gap-2">
-              <span className="text-xs text-dark-500">AI Transform:</span>
-              {(['expand', 'improve', 'summarize', 'continue', 'translate'] as const).map(action => (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-dark-500">AI Transform:</span>
                 <button
-                  key={action}
-                  onClick={() => handleTransform(action)}
-                  disabled={transforming}
-                  className="flex items-center gap-1 px-2 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-white rounded disabled:opacity-50 capitalize"
+                  onClick={() => setShowTransformInfo(!showTransformInfo)}
+                  className="p-0.5 text-dark-500 hover:text-blue-400 transition-colors"
+                  title="Show AI Transform help"
                 >
-                  {transforming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  {action}
+                  <Info className="w-3.5 h-3.5" />
                 </button>
-              ))}
+              </div>
+              
+              {showTransformInfo && (
+                <div className="bg-dark-900 border border-dark-600 rounded p-3 text-xs text-dark-300 space-y-2">
+                  <p className="font-medium text-white">AI-transformationer:</p>
+                  <div className="space-y-1.5">
+                    <p><span className="text-blue-400">Expand:</span> Utvecklar texten med fler detaljer och exempel</p>
+                    <p><span className="text-green-400">Improve:</span> Förbättrar struktur och tydlighet</p>
+                    <p><span className="text-yellow-400">Summarize:</span> Sammanfattar till huvudpunkter</p>
+                    <p><span className="text-purple-400">Continue:</span> Fortsätter skriva i samma stil</p>
+                    <p><span className="text-pink-400">Translate:</span> Översätter mellan Svenska/Engelska</p>
+                  </div>
+                  <p className="text-dark-500 italic mt-2">AI svarar alltid på samma språk som din text!</p>
+                </div>
+              )}
+              
+              <div className="flex flex-wrap gap-2">
+                {(['expand', 'improve', 'summarize', 'continue', 'translate'] as const).map(action => (
+                  <button
+                    key={action}
+                    onClick={() => handleTransform(action)}
+                    disabled={transforming}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-dark-700 hover:bg-dark-600 text-white rounded disabled:opacity-50 capitalize"
+                  >
+                    {transforming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    {action}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

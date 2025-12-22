@@ -8,6 +8,7 @@ import ChatInput, { ChatInputHandle } from '../components/ChatInput'
 import WorkspaceSettings from '../components/WorkspaceSettings'
 import DocumentManager from '../components/DocumentManager'
 import NotesSidebar from '../components/NotesSidebar'
+import DocumentsSidebar from '../components/DocumentsSidebar'
 import { Settings, FileText, X, StickyNote } from 'lucide-react'
 
 interface Message {
@@ -26,6 +27,9 @@ export default function Chat() {
   const [showNotes, setShowNotes] = useState(false)
   const [notesExpanded, setNotesExpanded] = useState(false)
   const [notesRefreshTrigger, setNotesRefreshTrigger] = useState(0)
+  const [showDocsSidebar, setShowDocsSidebar] = useState(false)
+  const [docsExpanded, setDocsExpanded] = useState(false)
+  const [docsRefreshTrigger, setDocsRefreshTrigger] = useState(0)
   const [useRag, setUseRag] = useState(true)
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -274,6 +278,8 @@ export default function Chat() {
   }
 
   const notesWidth = showNotes ? (notesExpanded ? 800 : 256) : 0
+  const docsWidth = showDocsSidebar ? (docsExpanded ? 800 : 256) : 0
+  const totalRightMargin = notesWidth + docsWidth
 
   return (
     <div className="flex h-screen bg-dark-900">
@@ -281,7 +287,7 @@ export default function Chat() {
 
       <div 
         className="flex-1 flex flex-col transition-all duration-300"
-        style={{ marginRight: `${notesWidth}px` }}
+        style={{ marginRight: `${totalRightMargin}px` }}
       >
         {currentWorkspace ? (
           <>
@@ -309,7 +315,7 @@ export default function Chat() {
                   </label>
                 )}
                 <button
-                  onClick={() => setShowDocuments(true)}
+                  onClick={() => setShowDocsSidebar(true)}
                   className={`p-2 hover:bg-dark-700 rounded-lg transition-colors ${
                     hasEmbeddedDocs ? 'text-green-400' : 'text-dark-400 hover:text-white'
                   }`}
@@ -439,6 +445,18 @@ export default function Chat() {
           onClose={() => setShowNotes(false)}
           refreshTrigger={notesRefreshTrigger}
           onAttachToChat={handleAttachNoteToChat}
+        />
+      )}
+
+      {currentWorkspace && (
+        <DocumentsSidebar
+          workspaceId={currentWorkspace.id}
+          isOpen={showDocsSidebar}
+          isExpanded={docsExpanded}
+          onToggleExpand={() => setDocsExpanded(!docsExpanded)}
+          onClose={() => setShowDocsSidebar(false)}
+          refreshTrigger={docsRefreshTrigger}
+          rightOffset={notesWidth}
         />
       )}
     </div>

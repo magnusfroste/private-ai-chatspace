@@ -319,6 +319,15 @@ export default function Chat() {
                   </label>
                 )}
                 <button
+                  onClick={() => setShowNotes(!showNotes)}
+                  className={`p-2 hover:bg-dark-700 rounded-lg transition-colors ${
+                    showNotes ? 'bg-dark-700 text-white' : 'text-dark-400 hover:text-white'
+                  }`}
+                  title="Notes"
+                >
+                  <StickyNote className="w-5 h-5" />
+                </button>
+                <button
                   onClick={() => setShowDocsSidebar(!showDocsSidebar)}
                   className={`p-2 hover:bg-dark-700 rounded-lg transition-colors ${
                     showDocsSidebar 
@@ -339,15 +348,6 @@ export default function Chat() {
                   title="Settings"
                 >
                   <Settings className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setShowNotes(!showNotes)}
-                  className={`p-2 hover:bg-dark-700 rounded-lg transition-colors ${
-                    showNotes ? 'bg-dark-700 text-white' : 'text-dark-400 hover:text-white'
-                  }`}
-                  title="Notes"
-                >
-                  <StickyNote className="w-5 h-5" />
                 </button>
               </div>
             </header>
@@ -468,7 +468,7 @@ export default function Chat() {
           onToggleExpand={() => setDocsExpanded(!docsExpanded)}
           onClose={() => setShowDocsSidebar(false)}
           refreshTrigger={docsRefreshTrigger}
-          rightOffset={notesWidth + settingsWidth}
+          rightOffset={notesWidth}
         />
       )}
 

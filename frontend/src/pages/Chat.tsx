@@ -457,7 +457,7 @@ export default function Chat() {
           onClose={() => setShowNotes(false)}
           refreshTrigger={notesRefreshTrigger}
           onAttachToChat={handleAttachNoteToChat}
-          rightOffset={0}
+          rightOffset={docsWidth + settingsWidth}
         />
       )}
 
@@ -469,7 +469,7 @@ export default function Chat() {
           onToggleExpand={() => setDocsExpanded(!docsExpanded)}
           onClose={() => setShowDocsSidebar(false)}
           refreshTrigger={docsRefreshTrigger}
-          rightOffset={notesWidth}
+          rightOffset={settingsWidth}
         />
       )}
 
@@ -480,7 +480,7 @@ export default function Chat() {
           isExpanded={settingsExpanded}
           onToggleExpand={() => setSettingsExpanded(!settingsExpanded)}
           onClose={() => setShowSettingsSidebar(false)}
-          rightOffset={notesWidth + docsWidth}
+          rightOffset={0}
         />
       )}
     </div>

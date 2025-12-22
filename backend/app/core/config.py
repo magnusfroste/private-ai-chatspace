@@ -72,6 +72,11 @@ When given context or documents, use them to inform your answers."""
     DOCUMENTS_DIR: str = "/data/documents"
     ORIGINALS_DIR: str = "/data/documents/originals"
     MARKDOWN_DIR: str = "/data/documents/markdown"
+    STORAGE_PATH: str = "/data"
+    
+    # MCP (Model Context Protocol) Settings
+    FIRECRAWL_API_KEY: str = ""  # Firecrawl API key for web search MCP
+    MCP_ENABLED: bool = False  # Enable MCP tool calling
     
     class Config:
         env_file = os.path.join(BACKEND_DIR, ".env")

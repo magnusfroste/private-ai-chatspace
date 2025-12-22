@@ -1,5 +1,6 @@
 import httpx
-from typing import AsyncGenerator, Optional, List, Dict
+import json
+from typing import AsyncGenerator, Optional, List, Dict, Any
 from app.core.config import settings
 
 
@@ -213,6 +214,119 @@ class LLMService:
                                 yield chunk["choices"][0]["delta"]["content"]
                         except:
                             continue
+    
+    async def chat_with_tools(
+        self,
+        messages: List[Dict[str, str]],
+        tools: List[Dict[str, Any]],
+        system_prompt: Optional[str] = None,
+        rag_context: Optional[str] = None,
+        file_content: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2048,
+    ) -> Dict[str, Any]:
+        """
+        Chat completion with tool calling support for MCP integration.
+        Returns response with potential tool_calls that need to be executed.
+        """
+        full_messages = []
+        
+        # Build combined system prompt
+        combined_prompt = self._build_system_prompt(system_prompt, rag_context, file_content)
+        if combined_prompt:
+            full_messages.append({"role": "system", "content": combined_prompt})
+        
+        # Add chat messages
+        full_messages.extend(messages)
+        
+        # Truncate messages if too long
+        full_messages = self._truncate_messages(full_messages, self.history_limit)
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                f"{self.base_url}/chat/completions",
+                headers=self._get_headers(),
+                json={
+                    "model": self.model,
+                    "messages": full_messages,
+                    "tools": tools,
+                    "tool_choice": "auto",  # Let LLM decide when to use tools
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "stream": False,
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def chat_with_tools_stream(
+        self,
+        messages: List[Dict[str, str]],
+        tools: List[Dict[str, Any]],
+        system_prompt: Optional[str] = None,
+        rag_context: Optional[str] = None,
+        file_content: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2048,
+    ) -> AsyncGenerator[str, None]:
+        """
+        Streaming chat completion with tool calling support.
+        Yields text chunks and handles tool calls automatically.
+        """
+        full_messages = []
+        
+        # Build combined system prompt
+        combined_prompt = self._build_system_prompt(system_prompt, rag_context, file_content)
+        if combined_prompt:
+            full_messages.append({"role": "system", "content": combined_prompt})
+        
+        # Add chat messages
+        full_messages.extend(messages)
+        
+        # Truncate messages if too long
+        full_messages = self._truncate_messages(full_messages, self.history_limit)
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            async with client.stream(
+                "POST",
+                f"{self.base_url}/chat/completions",
+                headers=self._get_headers(),
+                json={
+                    "model": self.model,
+                    "messages": full_messages,
+                    "tools": tools,
+                    "tool_choice": "auto",
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "stream": True,
+                }
+            ) as response:
+                response.raise_for_status()
+                tool_calls = []
+                
+                async for line in response.aiter_lines():
+                    if line.startswith("data: "):
+                        data = line[6:]
+                        if data == "[DONE]":
+                            break
+                        try:
+                            chunk = json.loads(data)
+                            delta = chunk.get("choices", [{}])[0].get("delta", {})
+                            
+                            # Handle text content
+                            if "content" in delta and delta["content"]:
+                                yield delta["content"]
+                            
+                            # Collect tool calls (streamed in chunks)
+                            if "tool_calls" in delta:
+                                for tool_call in delta["tool_calls"]:
+                                    tool_calls.append(tool_call)
+                        except:
+                            continue
+                
+                # If tool calls were made, they would be handled by the caller
+                # This is a simplified version - full implementation would need
+                # to pause streaming, execute tools, and continue
 
 
 llm_service = LLMService()

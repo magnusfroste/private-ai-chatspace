@@ -181,8 +181,8 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
 
       {/* Content */}
       {isExpanded && viewingDoc ? (
-        <div className="flex-1 flex flex-col p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-dark-700">
             <h3 className="text-sm font-medium text-white truncate flex-1">{viewingDoc.original_filename}</h3>
             <button
               onClick={closeViewer}
@@ -193,14 +193,16 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto bg-dark-900 border border-dark-600 rounded p-4">
+          <div className="flex-1 overflow-y-auto p-4">
             {loadingContent ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="w-6 h-6 animate-spin text-dark-400" />
               </div>
             ) : (
-              <div className="prose prose-invert prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-dark-200 text-sm font-mono">{docContent}</pre>
+              <div className="bg-dark-900 border border-dark-600 rounded p-4">
+                <div className="prose prose-invert prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap text-dark-200 text-sm font-mono">{docContent}</pre>
+                </div>
               </div>
             )}
           </div>

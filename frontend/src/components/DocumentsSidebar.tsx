@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api, Document } from '../lib/api'
 import { 
   FileText, 
@@ -8,7 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Eye
+  Eye,
+  Upload
 } from 'lucide-react'
 
 interface DocumentsSidebarProps {
@@ -27,6 +28,8 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
   const [viewingDoc, setViewingDoc] = useState<Document | null>(null)
   const [docContent, setDocContent] = useState<string>('')
   const [loadingContent, setLoadingContent] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (isOpen) {
@@ -89,6 +92,42 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
     setDocContent('')
   }
 
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    
+    setUploading(true)
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        // Upload document
+        const uploadedDoc = await api.documents.upload(workspaceId, file)
+        
+        // Automatically embed to RAG
+        await api.documents.embed(uploadedDoc.id)
+        
+        return uploadedDoc
+      })
+      
+      await Promise.all(uploadPromises)
+      
+      // Reload documents list
+      await loadDocuments()
+      
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    } catch (err) {
+      console.error('Failed to upload documents:', err)
+      alert('Failed to upload one or more documents')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleUpload(e.target.files)
+  }
+
   if (!isOpen) return null
 
   const width = isExpanded ? 'w-[800px]' : 'w-64'
@@ -111,12 +150,30 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
           <FileText className="w-5 h-5 text-green-400" />
           {isExpanded && <h2 className="text-lg font-medium text-white">Documents</h2>}
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx,.txt,.md"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="p-2 text-dark-400 hover:text-green-400 hover:bg-dark-700 rounded-lg transition-colors disabled:opacity-50"
+            title="Upload documents (auto-embedded to RAG)"
+          >
+            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -153,11 +210,12 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             </div>
           ) : documents.length === 0 ? (
             <div className="text-center py-12 text-dark-500">
-              <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <Upload className="w-12 h-12 mx-auto mb-3 opacity-50" />
               {isExpanded && (
                 <>
                   <p>No documents yet</p>
-                  <p className="text-sm mt-1">Upload documents to get started</p>
+                  <p className="text-sm mt-1">Click Upload to add PDFs</p>
+                  <p className="text-xs mt-2 text-dark-600">Auto-embedded to RAG</p>
                 </>
               )}
             </div>

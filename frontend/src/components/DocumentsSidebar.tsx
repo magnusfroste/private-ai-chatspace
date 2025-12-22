@@ -97,28 +97,31 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
     
     setUploading(true)
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        // Upload document
-        const uploadedDoc = await api.documents.upload(workspaceId, file)
-        
-        // Automatically embed to RAG
-        await api.documents.embed(uploadedDoc.id)
-        
-        return uploadedDoc
-      })
-      
-      await Promise.all(uploadPromises)
-      
-      // Reload documents list
-      await loadDocuments()
+      // Upload files sequentially to avoid overwhelming the server
+      for (const file of Array.from(files)) {
+        try {
+          // Upload document
+          const uploadedDoc = await api.documents.upload(workspaceId, file)
+          
+          // Add to documents list immediately
+          setDocuments(prev => [uploadedDoc, ...prev])
+          
+          // Automatically embed to RAG in background
+          api.documents.embed(uploadedDoc.id).then(updated => {
+            setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d))
+          }).catch(err => {
+            console.error('Failed to embed document:', err)
+          })
+        } catch (err) {
+          console.error(`Failed to upload ${file.name}:`, err)
+          alert(`Failed to upload ${file.name}`)
+        }
+      }
       
       // Clear file input
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-    } catch (err) {
-      console.error('Failed to upload documents:', err)
-      alert('Failed to upload one or more documents')
     } finally {
       setUploading(false)
     }

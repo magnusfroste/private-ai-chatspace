@@ -7,7 +7,8 @@ import ChatMessage from '../components/ChatMessage'
 import ChatInput from '../components/ChatInput'
 import WorkspaceSettings from '../components/WorkspaceSettings'
 import DocumentManager from '../components/DocumentManager'
-import { Settings, FileText, X } from 'lucide-react'
+import NotesSidebar from '../components/NotesSidebar'
+import { Settings, FileText, X, StickyNote } from 'lucide-react'
 
 interface Message {
   id: number
@@ -22,6 +23,7 @@ export default function Chat() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showDocuments, setShowDocuments] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
   const [useRag, setUseRag] = useState(true)
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -63,6 +65,21 @@ export default function Chat() {
       setMessages(data)
     } catch (err) {
       console.error('Failed to load messages:', err)
+    }
+  }
+
+  const handleSendToNotes = async (content: string) => {
+    if (!currentWorkspace) return
+    try {
+      await api.notes.create({
+        workspace_id: currentWorkspace.id,
+        title: `Note from ${new Date().toLocaleDateString()}`,
+        content: content
+      })
+      setShowNotes(true)
+    } catch (err) {
+      console.error('Failed to create note:', err)
+      alert('Failed to save note')
     }
   }
 
@@ -288,6 +305,13 @@ export default function Chat() {
                   <FileText className="w-5 h-5" />
                 </button>
                 <button
+                  onClick={() => setShowNotes(true)}
+                  className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
+                  title="Notes"
+                >
+                  <StickyNote className="w-5 h-5" />
+                </button>
+                <button
                   onClick={() => setShowSettings(true)}
                   className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
                   title="Settings"
@@ -315,6 +339,7 @@ export default function Chat() {
                         key={msg.id}
                         role={msg.role}
                         content={msg.content}
+                        onSendToNotes={msg.role === 'assistant' ? handleSendToNotes : undefined}
                       />
                     ))
                   )}
@@ -390,6 +415,14 @@ export default function Chat() {
             <DocumentManager workspaceId={currentWorkspace.id} />
           </div>
         </div>
+      )}
+
+      {currentWorkspace && (
+        <NotesSidebar
+          workspaceId={currentWorkspace.id}
+          isOpen={showNotes}
+          onClose={() => setShowNotes(false)}
+        />
       )}
     </div>
   )

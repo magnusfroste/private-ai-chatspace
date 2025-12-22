@@ -23,3 +23,4 @@ class User(Base):
     workspaces = relationship("Workspace", back_populates="owner")
     chats = relationship("Chat", back_populates="user")
     chat_logs = relationship("ChatLog", back_populates="user")
+    notes = relationship("Note", back_populates="user")

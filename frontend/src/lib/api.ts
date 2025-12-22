@@ -42,6 +42,16 @@ export interface User {
   created_at?: string
 }
 
+export interface Note {
+  id: number
+  workspace_id: number
+  user_id: number
+  title: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
 async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -199,5 +209,16 @@ export const api = {
       error?: string
     }>('/admin/test/marker'),
     toggleWorkspacePin: (workspaceId: number) => fetchApi<{ id: number; admin_pinned: boolean }>(`/admin/workspaces/${workspaceId}/pin`, { method: 'PUT' }),
+  },
+
+  notes: {
+    list: (workspaceId: number) => fetchApi<Note[]>(`/notes/workspace/${workspaceId}`),
+    create: (data: { workspace_id: number; title: string; content: string }) =>
+      fetchApi<Note>('/notes', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: { title?: string; content?: string }) =>
+      fetchApi<Note>(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => fetchApi(`/notes/${id}`, { method: 'DELETE' }),
+    transform: (id: number, action: 'expand' | 'improve' | 'summarize' | 'continue' | 'translate') =>
+      fetchApi<{ transformed: string }>(`/notes/${id}/transform?action=${action}`, { method: 'POST' }),
   },
 }

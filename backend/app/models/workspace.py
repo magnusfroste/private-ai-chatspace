@@ -23,3 +23,4 @@ class Workspace(Base):
     owner = relationship("User", back_populates="workspaces")
     chats = relationship("Chat", back_populates="workspace", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="workspace", cascade="all, delete-orphan")
+    notes = relationship("Note", back_populates="workspace", cascade="all, delete-orphan")

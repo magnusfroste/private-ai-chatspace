@@ -2,11 +2,12 @@ import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { Copy, Check, ChevronDown, ChevronUp, Globe, ExternalLink } from 'lucide-react'
+import { Copy, Check, ChevronDown, ChevronUp, Globe, ExternalLink, StickyNote } from 'lucide-react'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
   content: string
+  onSendToNotes?: (content: string) => void
 }
 
 function CodeBlock({ language, children }: { language: string; children: string }) {
@@ -120,14 +121,23 @@ function SourcesSection({ sources }: { sources: string }) {
   )
 }
 
-export default function ChatMessage({ role, content }: ChatMessageProps) {
+export default function ChatMessage({ role, content, onSendToNotes }: ChatMessageProps) {
   const [copied, setCopied] = useState(false)
+  const [sentToNotes, setSentToNotes] = useState(false)
   const isUser = role === 'user'
 
   const handleCopyMessage = async () => {
     await navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleSendToNotes = () => {
+    if (onSendToNotes) {
+      onSendToNotes(content)
+      setSentToNotes(true)
+      setTimeout(() => setSentToNotes(false), 2000)
+    }
   }
 
   // Split content into main content and sources section
@@ -189,22 +199,43 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
             {sourcesContent && <SourcesSection sources={sourcesContent} />}
             
             {content && (
-              <button
-                onClick={handleCopyMessage}
-                className="mt-2 opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs text-dark-500 hover:text-dark-300 transition-all"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3 h-3" />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span>Copy</span>
-                  </>
+              <div className="mt-2 opacity-0 group-hover:opacity-100 flex items-center gap-3">
+                <button
+                  onClick={handleCopyMessage}
+                  className="flex items-center gap-1 text-xs text-dark-500 hover:text-dark-300 transition-all"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3 h-3" />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+                
+                {onSendToNotes && (
+                  <button
+                    onClick={handleSendToNotes}
+                    className="flex items-center gap-1 text-xs text-dark-500 hover:text-blue-400 transition-all"
+                  >
+                    {sentToNotes ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        <span>Saved</span>
+                      </>
+                    ) : (
+                      <>
+                        <StickyNote className="w-3 h-3" />
+                        <span>Send to Notes</span>
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
             )}
           </div>
         )}

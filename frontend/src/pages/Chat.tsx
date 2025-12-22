@@ -457,6 +457,7 @@ export default function Chat() {
           onClose={() => setShowNotes(false)}
           refreshTrigger={notesRefreshTrigger}
           onAttachToChat={handleAttachNoteToChat}
+          rightOffset={0}
         />
       )}
 

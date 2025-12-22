@@ -24,9 +24,10 @@ interface NotesSidebarProps {
   onClose: () => void
   refreshTrigger?: number
   onAttachToChat?: (content: string) => void
+  rightOffset?: number
 }
 
-export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggleExpand, onClose, refreshTrigger, onAttachToChat }: NotesSidebarProps) {
+export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggleExpand, onClose, refreshTrigger, onAttachToChat, rightOffset = 0 }: NotesSidebarProps) {
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -171,7 +172,10 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
   const width = isExpanded ? 'w-[800px]' : 'w-64'
 
   return (
-    <div className={`fixed right-0 top-0 h-full ${width} bg-dark-800 border-l border-dark-700 flex flex-col z-40 transition-all duration-300`}>
+    <div 
+      className={`fixed top-0 h-full ${width} bg-dark-800 border-l border-dark-700 flex flex-col z-40 transition-all duration-300`}
+      style={{ right: `${rightOffset}px` }}
+    >
       {/* Header */}
       <div className="h-14 border-b border-dark-700 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">

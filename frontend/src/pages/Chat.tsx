@@ -41,9 +41,15 @@ export default function Chat() {
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<ChatInputHandle>(null)
+  const skipLoadMessagesRef = useRef(false)
 
   useEffect(() => {
     if (currentChat) {
+      // Skip loading if we just created this chat (messages are being streamed)
+      if (skipLoadMessagesRef.current) {
+        skipLoadMessagesRef.current = false
+        return
+      }
       loadMessages()
     } else {
       setMessages([])
@@ -243,9 +249,13 @@ export default function Chat() {
     try {
       const chat = await api.chats.create(currentWorkspace.id, title)
       addChat(chat)
+      
+      // Mark that we should skip loadMessages for this new chat
+      skipLoadMessagesRef.current = true
       setCurrentChat(chat)
       
-      // Call directly with chat.id - no need for setTimeout
+      // Wait for next render cycle before sending message
+      await new Promise(resolve => setTimeout(resolve, 50))
       await handleSendToChat(chat.id, content, files)
     } catch (err) {
       console.error('Failed to create chat:', err)

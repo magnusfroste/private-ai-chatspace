@@ -242,13 +242,22 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-dark-700">
             <h3 className="text-sm font-medium text-white truncate flex-1">{viewingDoc.original_filename}</h3>
-            <button
-              onClick={closeViewer}
-              className="flex items-center gap-1 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 text-white text-sm rounded"
-            >
-              <X className="w-4 h-4" />
-              Close
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.open(`/api/documents/${viewingDoc.id}/download`, '_blank')}
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
+                title="View original PDF"
+              >
+                📄 PDF
+              </button>
+              <button
+                onClick={closeViewer}
+                className="flex items-center gap-1 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 text-white text-sm rounded"
+              >
+                <X className="w-4 h-4" />
+                Close
+              </button>
+            </div>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4">

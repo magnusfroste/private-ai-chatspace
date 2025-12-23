@@ -19,7 +19,6 @@ export default function WorkspaceSettings({
   const [topN, setTopN] = useState(workspace.top_n || 5)
   const [similarityThreshold, setSimilarityThreshold] = useState(workspace.similarity_threshold || 0.25)
   const [useHybridSearch, setUseHybridSearch] = useState(workspace.use_hybrid_search !== false)
-  const [useWebSearch, setUseWebSearch] = useState(workspace.use_web_search === true)
   const [saving, setSaving] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const { setCurrentWorkspace, setWorkspaces, workspaces } = useWorkspaceStore()
@@ -35,7 +34,6 @@ export default function WorkspaceSettings({
         top_n: topN,
         similarity_threshold: similarityThreshold,
         use_hybrid_search: useHybridSearch,
-        use_web_search: useWebSearch,
       })
       setCurrentWorkspace(updated)
       setWorkspaces(workspaces.map((w) => (w.id === updated.id ? updated : w)))
@@ -80,19 +78,6 @@ export default function WorkspaceSettings({
           placeholder="Instructions for the AI assistant..."
         />
       </div>
-
-      <label className="flex items-center gap-3 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={useWebSearch}
-          onChange={(e) => setUseWebSearch(e.target.checked)}
-          className="w-4 h-4 rounded bg-dark-700 border-dark-600 text-blue-600"
-        />
-        <div>
-          <span className="text-sm text-white">Web Search</span>
-          <p className="text-xs text-dark-500">Include real-time web results</p>
-        </div>
-      </label>
 
       {/* Advanced Settings - Collapsible */}
       <div className="border border-dark-600 rounded-lg">

@@ -30,7 +30,7 @@ static/
 .env.*.local
 
 # Data
-/data/
+backend/data/
 *.db
 
 # OS

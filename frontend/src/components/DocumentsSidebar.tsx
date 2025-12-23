@@ -244,7 +244,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             <h3 className="text-sm font-medium text-white truncate flex-1">{viewingDoc.original_filename}</h3>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => window.open(`/api/documents/${viewingDoc.id}/download`, '_blank')}
+                onClick={() => window.open(`http://localhost:8000/api/documents/${viewingDoc.id}/download`, '_blank')}
                 className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
                 title="View original PDF"
               >

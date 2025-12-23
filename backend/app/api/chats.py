@@ -218,6 +218,7 @@ async def send_message(
     
     rag_context = None
     rag_sources = []
+    web_sources = []
     if data.use_rag:
         top_n = chat.workspace.top_n if chat.workspace and chat.workspace.top_n else 4
         threshold = chat.workspace.similarity_threshold if chat.workspace and chat.workspace.similarity_threshold else 0.0
@@ -234,7 +235,7 @@ async def send_message(
                 source_num = seen_files[filename]
                 context_parts.append(f"[{source_num}] {r['content']}")
                 if filename not in [s["filename"] for s in rag_sources]:
-                    rag_sources.append({"num": source_num, "filename": filename})
+                    rag_sources.append({"num": source_num, "filename": filename, "type": "rag"})
             rag_context = "\n\n---\n\n".join(context_parts)
     
     # Prepare web search tool for LLM (if enabled)
@@ -326,8 +327,12 @@ async def send_message(
                             search_result = await firecrawl_service.search(query=query, limit=5)
                             
                             if search_result:
+                                # Unpack result and sources
+                                result_text, web_sources_list = search_result
+                                web_sources.extend(web_sources_list)
+                                
                                 # Add search result to context and stream final response
-                                enhanced_context = f"{rag_context}\n\n---\n\nWeb Search Results:\n{search_result}" if rag_context else f"Web Search Results:\n{search_result}"
+                                enhanced_context = f"{rag_context}\n\n---\n\nWeb Search Results:\n{result_text}" if rag_context else f"Web Search Results:\n{result_text}"
                                 
                                 async for chunk in llm_service.chat_completion_stream(
                                     messages=history,
@@ -357,9 +362,10 @@ async def send_message(
                     full_response += chunk
                     yield f"data: {json.dumps({'content': chunk})}\n\n"
             
-            # Send sources/citations if available
-            if rag_sources:
-                yield f"data: {json.dumps({'sources': rag_sources})}\n\n"
+            # Send sources/citations if available (prioritize web sources over RAG if both exist)
+            sources_to_send = web_sources if web_sources else rag_sources
+            if sources_to_send:
+                yield f"data: {json.dumps({'sources': sources_to_send})}\n\n"
             
             yield f"data: {json.dumps({'done': True})}\n\n"
             
@@ -478,7 +484,7 @@ async def send_message_with_files(
                 source_num = seen_files[filename]
                 context_parts.append(f"[{source_num}] {r['content']}")
                 if filename not in [s["filename"] for s in rag_sources]:
-                    rag_sources.append({"num": source_num, "filename": filename})
+                    rag_sources.append({"num": source_num, "filename": filename, "type": "rag"})
             rag_context = "\n\n---\n\n".join(context_parts)
     
     # Web search via external agent (n8n)

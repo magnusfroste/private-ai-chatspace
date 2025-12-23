@@ -15,7 +15,7 @@ class FirecrawlService:
         self.base_url = "https://api.firecrawl.dev/v1"
         self.client = httpx.AsyncClient(timeout=60.0)  # Increased timeout for scraping
     
-    async def search(self, query: str, limit: int = 3) -> Optional[str]:
+    async def search(self, query: str, limit: int = 3) -> Optional[tuple[str, list]]:
         """
         Search the web using Firecrawl and scrape top results
         
@@ -24,7 +24,7 @@ class FirecrawlService:
             limit: Number of results to scrape (default 3 to avoid timeout)
             
         Returns:
-            Formatted search results with actual content, or None if failed
+            Tuple of (formatted text, sources list) or None if failed
         """
         if not self.api_key:
             print("[Firecrawl] API key not configured")
@@ -62,6 +62,7 @@ class FirecrawlService:
             
             # Format results with content from search
             formatted_results = []
+            sources = []
             for i, result in enumerate(results[:limit], 1):
                 title = result.get("title", "No title")
                 url = result.get("url", "")
@@ -78,6 +79,12 @@ class FirecrawlService:
                         f"🔗 [{url}]({url})\n\n"
                         f"{content}\n"
                     )
+                    sources.append({
+                        "num": i,
+                        "title": title,
+                        "url": url,
+                        "type": "web"
+                    })
             
             if not formatted_results:
                 print("[Firecrawl] No content extracted from results")
@@ -86,7 +93,7 @@ class FirecrawlService:
             result_text = "\n---\n".join(formatted_results)
             print(f"[Firecrawl] Scraped {len(formatted_results)} results with content")
             
-            return result_text
+            return (result_text, sources)
             
         except Exception as e:
             print(f"[Firecrawl] Error during search: {e}")

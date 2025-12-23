@@ -2,12 +2,12 @@ import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { Copy, Check, ChevronDown, ChevronUp, Globe, StickyNote } from 'lucide-react'
+import { Copy, Check, ChevronDown, ChevronUp, Globe, StickyNote, Database } from 'lucide-react'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
   content: string
-  sources?: Array<{ num: number; filename: string }>
+  sources?: Array<{ num: number; filename?: string; title?: string; url?: string; type: 'rag' | 'web' }>
   onSendToNotes?: (content: string) => void
 }
 
@@ -163,8 +163,14 @@ export default function ChatMessage({ role, content, sources, onSendToNotes }: C
             {sources && sources.length > 0 && (
               <div className="mt-4 pt-3 border-t border-dark-700">
                 <div className="flex items-center gap-2 text-xs text-dark-400 mb-2">
-                  <Globe className="w-3.5 h-3.5" />
-                  <span className="font-medium uppercase tracking-wide">Källor (RAG)</span>
+                  {sources[0].type === 'web' ? (
+                    <Globe className="w-3.5 h-3.5" />
+                  ) : (
+                    <Database className="w-3.5 h-3.5" />
+                  )}
+                  <span className="font-medium uppercase tracking-wide">
+                    Källor ({sources[0].type === 'web' ? 'WEB' : 'RAG'})
+                  </span>
                 </div>
                 <div className="space-y-1">
                   {sources.map((source) => (
@@ -172,7 +178,18 @@ export default function ChatMessage({ role, content, sources, onSendToNotes }: C
                       <span className="flex-shrink-0 w-5 h-5 bg-dark-700 rounded flex items-center justify-center text-dark-300 font-medium">
                         {source.num}
                       </span>
-                      <span className="flex-1">{source.filename}</span>
+                      {source.type === 'web' ? (
+                        <a 
+                          href={source.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex-1 hover:text-blue-400 transition-colors"
+                        >
+                          {source.title}
+                        </a>
+                      ) : (
+                        <span className="flex-1">{source.filename}</span>
+                      )}
                     </div>
                   ))}
                 </div>

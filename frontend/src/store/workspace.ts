@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { Workspace, Chat } from '../lib/api'
 
 export type { Workspace, Chat }
@@ -19,36 +20,48 @@ interface WorkspaceState {
   updateWorkspace: (workspace: Workspace) => void
 }
 
-export const useWorkspaceStore = create<WorkspaceState>((set) => ({
-  workspaces: [],
-  currentWorkspace: null,
-  chats: [],
-  currentChat: null,
-  setWorkspaces: (workspaces) => set({ workspaces }),
-  setCurrentWorkspace: (workspace) => set({ currentWorkspace: workspace, currentChat: null }),
-  setChats: (chats) => set({ chats }),
-  setCurrentChat: (chat) => set({ currentChat: chat }),
-  addWorkspace: (workspace) => set((state) => ({ 
-    workspaces: [...state.workspaces, workspace],
-    currentWorkspace: workspace
-  })),
-  addChat: (chat) => set((state) => ({ chats: [chat, ...state.chats] })),
-  removeChat: (chatId) => set((state) => ({ 
-    chats: state.chats.filter(c => c.id !== chatId),
-    currentChat: state.currentChat?.id === chatId ? null : state.currentChat
-  })),
-  removeWorkspace: (workspaceId) => set((state) => {
-    const newWorkspaces = state.workspaces.filter(w => w.id !== workspaceId)
-    const isCurrentDeleted = state.currentWorkspace?.id === workspaceId
-    return {
-      workspaces: newWorkspaces,
-      currentWorkspace: isCurrentDeleted ? (newWorkspaces[0] || null) : state.currentWorkspace,
-      chats: isCurrentDeleted ? [] : state.chats,
-      currentChat: isCurrentDeleted ? null : state.currentChat
+export const useWorkspaceStore = create<WorkspaceState>()(
+  persist(
+    (set) => ({
+      workspaces: [],
+      currentWorkspace: null,
+      chats: [],
+      currentChat: null,
+      setWorkspaces: (workspaces) => set({ workspaces }),
+      setCurrentWorkspace: (workspace) => set({ currentWorkspace: workspace, currentChat: null }),
+      setChats: (chats) => set({ chats }),
+      setCurrentChat: (chat) => set({ currentChat: chat }),
+      addWorkspace: (workspace) => set((state) => ({
+        workspaces: [...state.workspaces, workspace],
+        currentWorkspace: workspace
+      })),
+      addChat: (chat) => set((state) => ({ chats: [chat, ...state.chats] })),
+      removeChat: (chatId) => set((state) => ({
+        chats: state.chats.filter(c => c.id !== chatId),
+        currentChat: state.currentChat?.id === chatId ? null : state.currentChat
+      })),
+      removeWorkspace: (workspaceId) => set((state) => {
+        const newWorkspaces = state.workspaces.filter(w => w.id !== workspaceId)
+        const isCurrentDeleted = state.currentWorkspace?.id === workspaceId
+        return {
+          workspaces: newWorkspaces,
+          currentWorkspace: isCurrentDeleted ? (newWorkspaces[0] || null) : state.currentWorkspace,
+          chats: isCurrentDeleted ? [] : state.chats,
+          currentChat: isCurrentDeleted ? null : state.currentChat
+        }
+      }),
+      updateWorkspace: (workspace) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspace.id ? workspace : w),
+        currentWorkspace: state.currentWorkspace?.id === workspace.id ? workspace : state.currentWorkspace
+      })),
+    }),
+    {
+      name: 'workspace-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        currentWorkspace: state.currentWorkspace,
+        currentChat: state.currentChat
+      })
     }
-  }),
-  updateWorkspace: (workspace) => set((state) => ({
-    workspaces: state.workspaces.map(w => w.id === workspace.id ? workspace : w),
-    currentWorkspace: state.currentWorkspace?.id === workspace.id ? workspace : state.currentWorkspace
-  })),
-}))
+  )
+)

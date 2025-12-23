@@ -72,7 +72,18 @@ export default function Sidebar() {
     try {
       const data = await api.workspaces.list()
       setWorkspaces(data)
-      if (data.length > 0 && !currentWorkspace) {
+      // Try to restore saved workspace, fallback to first available
+      if (data.length > 0) {
+        if (currentWorkspace) {
+          // Check if current workspace still exists in the loaded list
+          const existingWorkspace = data.find(w => w.id === currentWorkspace.id)
+          if (existingWorkspace) {
+            // Workspace exists, just update it in case it changed
+            setCurrentWorkspace(existingWorkspace)
+            return
+          }
+        }
+        // No valid current workspace, set first available
         setCurrentWorkspace(data[0])
       }
     } catch (err) {

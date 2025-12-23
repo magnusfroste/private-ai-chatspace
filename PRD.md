@@ -2,7 +2,14 @@
 
 ## Executive Summary
 
-Autoversio is an AI-driven chat application built for teams that need sophisticated document management and intelligent search. The system combines Retrieval-Augmented Generation (RAG), hybrid vector search, and external search agents to provide users with access to both private documents and real-time web information.
+Autoversio is an AI-driven chat application built for teams that need sophisticated document management and intelligent search. The system combines Retrieval-Augmented Generation (RAG), hybrid vector search, and intelligent tool calling for external search to provide users with access to both private documents and real-time web information.
+
+**Key Highlights**:
+- **Intelligent Tool Calling**: LLM autonomously decides when to use web search (5-10s when needed vs 45s always)
+- **Advanced PDF Support**: OCR-enabled PDF processing with Marker API for scanned documents
+- **Multi-file Upload**: Upload multiple documents simultaneously with batch processing
+- **Real-time Citations**: Automatic source attribution with visual icons (Database for RAG, Globe for Web)
+- **Hybrid Search**: Combines semantic and keyword search for superior document retrieval
 
 ## Core Features
 
@@ -48,7 +55,7 @@ Autoversio is an AI-driven chat application built for teams that need sophistica
 - **Combined with RAG**: Both RAG and CAG can be active simultaneously
 - **File Limit**: Multiple files can be attached to a single message
 
-### 5. Web Search Integration & Tool Calling
+### 5. Web Search Integration & Intelligent Tool Calling
 
 #### Intelligent Tool Calling (CORE FEATURE)
 **Status**: ✅ IMPLEMENTED - Qwen3-80B tool calling verified and working
@@ -66,16 +73,7 @@ Tool calling enables LLMs to intelligently decide when external tools are needed
 - `web_search`: Searches web for current information, news, facts
 - **Planned**: `calculator`, `file_analysis`, `api_calls` (extensible framework)
 
-#### Architecture Comparison
-
-| Approach | Trigger | Decision Maker | Speed | Complexity |
-|----------|---------|----------------|-------|------------|
-| **Tool Calling** (CURRENT) | LLM analyzes query | LLM autonomously | Fast (5-10s when needed) | Medium |
-| **Always Search** (OLD) | Every message | User toggle | Slow (45s always) | Low |
-| **MCP Protocol** (FUTURE) | MCP server events | Protocol negotiation | Variable | High |
-| **Webhooks** (FALLBACK) | Manual/API trigger | External service | Slow (45s) | Low |
-
-**Tool Calling Implementation**:
+**Implementation Architecture**:
 ```python
 # 1. Tools defined when web search enabled
 tools = [{
@@ -97,23 +95,61 @@ if tool_calls:
     execute_tools_and_respond()
 ```
 
-#### Qwen3-80B Tool Calling Verification
-- ✅ **Confirmed**: Tool calling works with vLLM + OpenAI API format
-- ✅ **Tested**: N8N agent node successfully receives and processes tool calls
-- ✅ **Activated**: Tool calling enabled in vLLM configuration
-- ✅ **Production Ready**: Deployed and working in current implementation
+#### Performance Comparison
+
+| Approach | Trigger | Decision Maker | Speed | Complexity |
+|----------|---------|----------------|-------|------------|
+| **Tool Calling** (CURRENT) | LLM analyzes query | LLM autonomously | Fast (5-10s when needed) | Medium |
+| **Always Search** (OLD) | Every message | User toggle | Slow (45s always) | Low |
+| **Webhooks** (FALLBACK) | Manual/API trigger | External service | Slow (45s) | Low |
 
 #### Web Search Providers
-- **Primary**: Firecrawl API (HTTP-based, fast, intelligent)
+- **Primary**: Firecrawl API (HTTP-based, fast, intelligent scraping)
 - **Fallback**: n8n webhook (traditional, slower)
 - **Configuration**: `FIRECRAWL_API_KEY` required for tool calling
 
-### 6. Document Management
+#### Citation System
+- **Automatic Citations**: Sources displayed with appropriate icons
+- **Database Icon**: 🔍 RAG citations (private documents)
+- **Globe Icon**: 🌐 Web search citations (external sources)
+- **Clickable Links**: Web sources link directly to original content
+- **Real-time Updates**: Citations appear instantly with streaming responses
+
+### 6. Document Management & OCR Support
+
+#### Advanced Document Processing
+- **Multi-file Upload**: Upload multiple PDF, DOCX, TXT, MD files simultaneously
+- **Batch Processing**: Efficient processing of multiple documents with progress tracking
+- **OCR Support**: Marker API integration for scanned PDF processing
 - **File Browser**: Upload, view, and manage documents per workspace
 - **Embedding Status**: Track which documents have been processed for RAG
 - **Bulk Operations**: Embed all documents at once with progress tracking
 - **File Deletion**: Remove documents and associated embeddings
 - **Metadata Tracking**: File size, upload date, embedding status
+
+#### PDF Processing Pipeline
+```bash
+# 1. Upload → Original storage
+uploaded_file.pdf → /data/documents/originals/
+
+# 2. OCR Processing (if Marker API configured)
+marker_api.process(uploaded_file.pdf) → markdown_content
+
+# 3. Fallback (if no OCR)
+PyPDF2.extract_text(uploaded_file.pdf) → basic_text
+
+# 4. Markdown Storage
+markdown_content → /data/documents/markdown/
+
+# 5. Chunking & Embedding
+text_chunks → Qdrant vector database
+```
+
+#### OCR Configuration
+- **Marker API**: `OCR_SERVICE_URL=https://marker.autoversio.ai`
+- **Automatic Fallback**: Uses basic PyPDF2 if OCR unavailable
+- **Scanned Document Support**: Handles image-based PDFs
+- **Quality Enhancement**: Improved text extraction accuracy
 
 ### 7. LLM Integration
 - **OpenAI-compatible API**: Generic LLM service supporting any OpenAI-compatible endpoint
@@ -128,18 +164,51 @@ if tool_calls:
 - **Dimension Configuration**: Configurable embedding vector dimensions
 - **Hybrid Search Support**: Both dense and sparse vector generation
 
-### 9. Vector Database Integration
+### 9. Frontend Architecture & UI/UX
+
+#### Real-time Features
+- **Server-Sent Events**: Live streaming responses with token-by-token updates
+- **Instant UI Updates**: No page refreshes required for any operation
+- **Race Condition Prevention**: Proper state management prevents data conflicts
+- **Optimistic Updates**: UI updates immediately, rolls back on errors
+
+#### State Management
+- **Zustand Store**: Global state for workspaces, chats, and user data
+- **Real-time Sync**: All components update instantly when data changes
+- **Optimistic UI**: Actions appear instant while processing in background
+- **Error Handling**: Graceful failure handling with user feedback
+
+#### Multi-file Upload Interface
+- **Drag & Drop**: Support for multiple files simultaneously
+- **Progress Tracking**: Real-time upload and processing status
+- **Batch Operations**: Process multiple documents efficiently
+- **Error Recovery**: Individual file failures don't block others
+
+#### Citation System UI
+```typescript
+// Automatic source display
+{sources && sources.length > 0 && (
+  <div className="mt-4 pt-3 border-t border-dark-700">
+    <div className="flex items-center gap-2 text-xs text-dark-400 mb-2">
+      {sources[0].type === 'web' ? (
+        <Globe className="w-3.5 h-3.5" />
+      ) : (
+        <Database className="w-3.5 h-3.5" />
+      )}
+      <span className="font-medium uppercase tracking-wide">
+        Källor ({sources[0].type === 'web' ? 'WEB' : 'RAG'})
+      </span>
+    </div>
+    {/* Source list with numbers and links */}
+  </div>
+)}
+```
+
+### 10. Vector Database Integration
 - **Qdrant Support**: High-performance vector similarity search with hybrid capabilities
 - **Collection Management**: Automatic collection creation per workspace
 - **Similarity Search**: Configurable top-k retrieval with score thresholds
 - **Hybrid Search**: Combination of semantic (dense) and keyword (sparse) search
-
-### 10. Admin Panel
-- **Statistics Dashboard**: User counts, chat logs, system metrics
-- **User Management**: View and manage all users
-- **Chat Logging**: Comprehensive logging of all conversations with performance metrics
-- **System Monitoring**: Real-time service health checks (LLM, Embedder, Qdrant)
-- **Workspace Oversight**: Admin can access all workspaces and pin important ones
 
 ## Technical Architecture
 
@@ -182,8 +251,8 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 
 #### Vector Database & Search
 - `QDRANT_URL`: Vector database endpoint
-- `SEARCH_AGENT_URL`: n8n webhook URL for web search (optional)
 - `OCR_SERVICE_URL`: Marker API URL for PDF OCR (optional, enables scanned PDF support)
+- `FIRECRAWL_API_KEY`: Required for intelligent tool calling web search
 
 #### Default RAG Settings (applied to new workspaces)
 - `DEFAULT_TOP_N`: Number of context chunks (default: 5)
@@ -202,6 +271,11 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 #### Storage & Database
 - `DATABASE_URL`: Database connection string
 - `DATA_DIR` / `DOCUMENTS_DIR` / `ORIGINALS_DIR` / `MARKDOWN_DIR`: Storage paths
+
+#### OCR & External Services
+- `OCR_SERVICE_URL`: Marker API for scanned PDF support
+- `FIRECRAWL_API_KEY`: Fast web search integration
+- `SEARCH_AGENT_URL`: Fallback n8n webhook (optional)
 
 ### Runtime Configuration
 - System prompts per workspace (overrides default)
@@ -253,16 +327,19 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 - **Clean Layout**: Sidebar navigation with main content area
 - **Responsive**: Works on desktop and mobile devices
 - **Intuitive Controls**: Clear buttons and visual feedback
+- **Real-time Updates**: All changes appear instantly without page refreshes
+- **Multi-file Upload**: Drag-and-drop support for batch document processing
 
 ### Workflow
 1. **Login**: Secure authentication with JWT
 2. **Workspace Creation**: Set up isolated environments with custom settings
-3. **Document Upload**: Add knowledge base documents for RAG
+3. **Multi-file Upload**: Upload multiple documents simultaneously for RAG
 4. **Settings Configuration**: Configure RAG parameters, search options, and AI behavior
-5. **Chat Creation**: Start conversations within workspaces
+5. **Intelligent Chat**: Start conversations with automatic tool calling and citations
 6. **Context-Augmented Responses**: AI answers with document and web search context
 7. **File Attachments**: Upload files directly in chat for immediate context
-8. **Settings Management**: Fine-tune workspace and preferences
+8. **Real-time Citations**: Sources appear instantly with appropriate icons
+9. **Settings Management**: Fine-tune workspace and preferences without refreshes
 
 ## Performance Requirements
 
@@ -271,7 +348,10 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 - **Concurrent Users**: Support for multiple simultaneous users
 - **Document Processing**: Efficient batch embedding operations (up to 10MB files)
 - **Database Queries**: Optimized for chat history and vector search
-- **Web Search**: <5 second response time for external search integration
+- **Web Search**: <5 second response time for intelligent tool calling
+- **File Upload**: Multi-file batch processing with progress tracking
+- **OCR Processing**: Enhanced PDF text extraction with Marker API
+- **Citation Display**: Instant source attribution during streaming
 
 ## Scalability Considerations
 
@@ -290,12 +370,20 @@ All settings can be configured via environment variables in Easypanel or `.env` 
   - Current: Workspaces are private (owner + admins only)
   - Potential: Share with specific users or teams
   - Considerations: Permissions, access control, audit logs
-- Advanced document processing (Docling integration)
-- Paperless integration for document import
-- Voice input/output
-- Advanced analytics dashboard
-- Plugin system for custom integrations
-- Mobile app (React Native)
+- **Advanced Document Processing**: Docling integration for enhanced document parsing
+- **Paperless Integration**: Direct document import from scanning services
+- **Plugin System**: Custom integrations and tools
+- **Mobile App**: React Native implementation
+- **Voice Input/Output**: Audio conversation support
+- **Analytics Dashboard**: Usage tracking and insights
+
+#### Recent Enhancements
+- ✅ **Intelligent Tool Calling**: LLM autonomously decides when to search web
+- ✅ **OCR PDF Support**: Marker API integration for scanned documents
+- ✅ **Multi-file Upload**: Batch document processing interface
+- ✅ **Real-time Citations**: Automatic source display with icons
+- ✅ **Race Condition Fixes**: All UI updates work without page refreshes
+- ✅ **Citation System**: Visual differentiation between RAG and Web sources
 
 ### Technical Improvements
 - Redis caching layer
@@ -310,7 +398,7 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 
 AutoVersio provides a complete, production-ready LLM chat application with advanced RAG capabilities, web search integration, and sophisticated document management. The modular architecture supports various LLM and embedding services while maintaining a clean, user-friendly interface focused on productivity and ease of use.
 
-**Implementation Status**: All core features implemented and tested, successfully deployed with remote LLM, embedding, vector database, and web search services integration.
+**Implementation Status**: All core features implemented and tested, successfully deployed with remote LLM, embedding, vector database, OCR, and intelligent web search integration. Recent updates include tool calling, multi-file upload, and real-time citation display.
 
 ## Setup and Installation
 
@@ -390,7 +478,8 @@ EMBEDDER_BASE_URL=http://embedder-service:8001/v1
 EMBEDDER_API_KEY=your-embedder-api-key
 EMBEDDER_MODEL=default
 QDRANT_URL=http://qdrant:6333
-SEARCH_AGENT_URL=https://your-n8n-webhook-url
+FIRECRAWL_API_KEY=your-firecrawl-key
+OCR_SERVICE_URL=https://marker.autoversio.ai
 DATABASE_URL=sqlite+aiosqlite:///data/autoversio.db
 ```
 
@@ -434,6 +523,11 @@ DATABASE_URL=sqlite+aiosqlite:///data/autoversio.db
    - External search integration
    - Returns formatted search results
 
+5. **OCR Service** (Optional - Marker API)
+   - Advanced PDF processing for scanned documents
+   - Improved text extraction accuracy
+   - Configurable fallback to basic extraction
+
 #### Service Health Monitoring
 The application includes health check endpoints to verify service connectivity:
 - LLM service availability
@@ -463,6 +557,13 @@ The application includes health check endpoints to verify service connectivity:
 
 ## Conclusion
 
-Application provides a complete, production-ready LLM chat application with advanced RAG capabilities, web search integration, and sophisticated document management. The modular architecture supports various LLM and embedding services while maintaining a clean, user-friendly interface focused on productivity and ease of use.
+Application provides a complete, production-ready LLM chat application with advanced RAG capabilities, intelligent tool calling, OCR-enabled document processing, multi-file upload, and real-time citation display. The modular architecture supports various LLM and embedding services while maintaining a clean, user-friendly interface focused on productivity and ease of use.
 
-**Implementation Status**: All core features implemented and tested, successfully deployed with remote LLM, embedding, vector database, and web search services integration.
+**Key Differentiators**:
+- **Intelligent Tool Calling**: LLM autonomously decides when external search is needed
+- **OCR PDF Support**: Advanced document processing for scanned PDFs
+- **Multi-file Upload**: Batch document processing interface
+- **Real-time Citations**: Visual source attribution with clickable links
+- **Race-free UI**: All updates happen instantly without page refreshes
+
+**Implementation Status**: All core features implemented and tested, successfully deployed with remote LLM, embedding, vector database, OCR, and intelligent web search integration. Recent updates include tool calling, multi-file upload, and real-time citation display.

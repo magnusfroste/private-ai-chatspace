@@ -100,6 +100,7 @@ export const api = {
         body: JSON.stringify({ email, password, name }),
       }),
     me: () => fetchApi<{ id: number; email: string; name: string | null; role: string }>('/auth/me'),
+    config: () => fetchApi<{ app_name: string }>('/auth/config'),
   },
   
   workspaces: {
@@ -212,6 +213,11 @@ export const api = {
       error?: string
     }>('/admin/test/pdf-provider'),
     toggleWorkspacePin: (workspaceId: number) => fetchApi<{ id: number; admin_pinned: boolean }>(`/admin/workspaces/${workspaceId}/pin`, { method: 'PUT' }),
+    
+    // System Settings
+    getSettings: () => fetchApi<Record<string, { value: any; type: string; description: string; source: string }>>('/admin/settings'),
+    updateSetting: (key: string, value: any) => fetchApi<{ key: string; value: any; source: string }>(`/admin/settings/${key}`, { method: 'PUT', body: JSON.stringify({ value }) }),
+    resetSetting: (key: string) => fetchApi<{ key: string; value: any; source: string }>(`/admin/settings/${key}`, { method: 'DELETE' }),
   },
 
   notes: {

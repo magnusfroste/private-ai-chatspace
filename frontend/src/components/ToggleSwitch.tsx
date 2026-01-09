@@ -1,7 +1,7 @@
 interface ToggleSwitchProps {
   enabled: boolean
   onChange: (enabled: boolean) => void
-  label: string
+  label?: string
   size?: 'sm' | 'md'
 }
 
@@ -40,11 +40,13 @@ export default function ToggleSwitch({
           }`}
         />
       </div>
-      <span className={`text-sm transition-colors ${
-        enabled ? 'text-white' : 'text-dark-400 group-hover:text-dark-300'
-      }`}>
-        {label}
-      </span>
+      {label && (
+        <span className={`text-sm transition-colors ${
+          enabled ? 'text-white' : 'text-dark-400 group-hover:text-dark-300'
+        }`}>
+          {label}
+        </span>
+      )}
     </button>
   )
 }

@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user
 from app.core.config import settings
 from app.models.user import User
+from app.services.settings_service import settings_service
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -84,3 +85,12 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.get("/config")
+async def get_app_config(db: AsyncSession = Depends(get_db)):
+    """Get public app configuration (no auth required)."""
+    app_name = await settings_service.get(db, "app_name")
+    return {
+        "app_name": app_name or settings.APP_NAME
+    }

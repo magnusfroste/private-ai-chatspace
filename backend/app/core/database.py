@@ -104,3 +104,15 @@ async def run_migrations():
                 created_by INTEGER
             )
         """))
+        
+        # Create system_settings table if it doesn't exist
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS system_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key TEXT UNIQUE NOT NULL,
+                value TEXT,
+                value_type TEXT DEFAULT 'string',
+                description TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))

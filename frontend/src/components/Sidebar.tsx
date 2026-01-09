@@ -47,10 +47,21 @@ export default function Sidebar() {
   const [editingWorkspaceName, setEditingWorkspaceName] = useState('')
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [appName, setAppName] = useState('AI Chat')
 
   useEffect(() => {
     loadWorkspaces()
+    loadAppConfig()
   }, [])
+
+  const loadAppConfig = async () => {
+    try {
+      const config = await api.auth.config()
+      setAppName(config.app_name)
+    } catch (err) {
+      console.error('Failed to load app config:', err)
+    }
+  }
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -192,7 +203,7 @@ export default function Sidebar() {
   return (
     <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-dark-950 border-r border-dark-700 flex flex-col h-full transition-all duration-300`}>
       <div className="p-4 border-b border-dark-700 flex items-center justify-between">
-        {!isCollapsed && <h1 className="text-xl font-bold text-white">AutoVersio</h1>}
+        {!isCollapsed && <h1 className="text-xl font-bold text-white">{appName}</h1>}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-1 text-dark-400 hover:text-white hover:bg-dark-700 rounded"

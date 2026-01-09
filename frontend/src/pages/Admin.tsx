@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api, User } from '../lib/api'
 import RagEvaluator from '../components/RagEvaluator'
+import SystemSettings from '../components/SystemSettings'
 import {
   ArrowLeft,
   Users as UsersIcon,
@@ -84,7 +85,7 @@ interface TestResult {
 
 export default function Admin() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<'system' | 'stats' | 'users' | 'logs' | 'evaluator'>('system')
+  const [tab, setTab] = useState<'system' | 'stats' | 'users' | 'logs' | 'evaluator' | 'settings'>('system')
   const [stats, setStats] = useState<Stats | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [logs, setLogs] = useState<ChatLog[]>([])
@@ -268,6 +269,17 @@ export default function Admin() {
           >
             <FlaskConical className="w-4 h-4" />
             RAG Evaluator
+          </button>
+          <button
+            onClick={() => setTab('settings')}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+              tab === 'settings'
+                ? 'bg-dark-700 text-white'
+                : 'text-dark-400 hover:text-white hover:bg-dark-800'
+            }`}
+          >
+            <Server className="w-4 h-4" />
+            Settings
           </button>
         </nav>
 
@@ -615,6 +627,8 @@ export default function Admin() {
               )}
 
               {tab === 'evaluator' && <RagEvaluator />}
+
+              {tab === 'settings' && <SystemSettings />}
             </>
           )}
         </main>

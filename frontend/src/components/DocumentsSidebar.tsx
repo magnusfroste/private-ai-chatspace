@@ -9,9 +9,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Eye,
   Upload,
-  FileText
+  FileText,
+  Eye
 } from 'lucide-react'
 
 interface DocumentsSidebarProps {
@@ -77,7 +77,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
     }
   }
 
-  const handleView = async (doc: Document) => {
+  const handleViewMarkdown = async (doc: Document) => {
     setViewingDoc(doc)
     setLoadingContent(true)
     try {
@@ -91,16 +91,6 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
     }
   }
 
-  const handleDownload = (doc: Document) => {
-    // Create download link for original file
-    const link = document.createElement('a')
-    link.href = `${window.location.origin}/api/documents/${doc.id}/download`
-    link.download = doc.original_filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   const handleDownloadMarkdown = (doc: Document) => {
     // Create download link for parsed markdown file
     const link = document.createElement('a')
@@ -109,6 +99,11 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  const handleViewPdf = (doc: Document) => {
+    // Open PDF in new tab
+    window.open(`${window.location.origin}/api/documents/${doc.id}/download`, '_blank')
   }
 
   const closeViewer = () => {
@@ -288,18 +283,11 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             <h3 className="text-sm font-medium text-white truncate flex-1">{viewingDoc.original_filename}</h3>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => window.open(`${window.location.origin}/api/documents/${viewingDoc.id}/download`, '_blank')}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
-                title="View original PDF"
-              >
-                📄 PDF
-              </button>
-              <button
                 onClick={() => handleDownloadMarkdown(viewingDoc)}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded"
                 title="Download markdown"
               >
-                📝 MD
+                <Download className="w-3 h-3" /> MD
               </button>
               <button
                 onClick={closeViewer}
@@ -351,28 +339,27 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
                 {isExpanded ? (
                   <>
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-medium text-white text-sm flex-1 truncate">{doc.original_filename}</h3>
+                      <h3 
+                        className="font-medium text-white text-sm flex-1 truncate cursor-pointer hover:text-blue-400"
+                        onClick={() => handleViewMarkdown(doc)}
+                        title="View parsed markdown"
+                      >
+                        {doc.original_filename}
+                      </h3>
                       <div className="flex gap-1">
                         <button
-                          onClick={() => handleView(doc)}
+                          onClick={() => handleViewMarkdown(doc)}
                           className="p-1 text-dark-400 hover:text-blue-400 hover:bg-dark-800 rounded"
-                          title="View document"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDownload(doc)}
-                          className="p-1 text-dark-400 hover:text-green-400 hover:bg-dark-800 rounded"
-                          title="Download original"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDownloadMarkdown(doc)}
-                          className="p-1 text-dark-400 hover:text-purple-400 hover:bg-dark-800 rounded"
-                          title="Download markdown"
+                          title="View markdown"
                         >
                           <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleViewPdf(doc)}
+                          className="p-1 text-dark-400 hover:text-purple-400 hover:bg-dark-800 rounded"
+                          title="View original PDF"
+                        >
+                          <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
@@ -433,7 +420,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
                       if (!isExpanded) {
                         onToggleExpand()
                       }
-                      handleView(doc)
+                      handleViewMarkdown(doc)
                     }}
                   >
                     <FileText className={`w-4 h-4 flex-shrink-0 ${

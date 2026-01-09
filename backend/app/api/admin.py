@@ -18,6 +18,7 @@ from app.models.chat_log import ChatLog
 from app.services.rag_service import rag_service
 from app.services.llm_service import llm_service
 from app.services.document_service import document_service
+from app.services.settings_service import settings_service, ADMIN_SETTINGS
 from app.models.evaluation import RagEvaluation
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -944,3 +945,54 @@ async def delete_evaluation(
     await db.commit()
     
     return {"deleted": True}
+
+
+# =============================================================================
+# System Settings
+# =============================================================================
+
+class SettingUpdate(BaseModel):
+    value: Any
+
+
+@router.get("/settings")
+async def get_system_settings(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Get all system settings with current values and sources."""
+    return await settings_service.get_all(db)
+
+
+@router.put("/settings/{key}")
+async def update_system_setting(
+    key: str,
+    data: SettingUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Update a system setting (overrides .env default)."""
+    if key not in ADMIN_SETTINGS:
+        raise HTTPException(status_code=400, detail=f"Unknown setting: {key}")
+    
+    success = await settings_service.set(db, key, data.value)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update setting")
+    
+    return {"key": key, "value": data.value, "source": "database"}
+
+
+@router.delete("/settings/{key}")
+async def reset_system_setting(
+    key: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Reset a setting to .env default."""
+    await settings_service.reset(db, key)
+    
+    # Return the default value
+    env_attr = ADMIN_SETTINGS[key][0]
+    default_value = getattr(settings, env_attr, None)
+    
+    return {"key": key, "value": default_value, "source": "default"}

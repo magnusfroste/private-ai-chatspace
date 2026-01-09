@@ -90,8 +90,8 @@ export default function Admin() {
   const [overview, setOverview] = useState<SystemOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [testResults, setTestResults] = useState<{ llm?: TestResult; embedder?: TestResult; qdrant?: TestResult; marker?: TestResult }>({})
-  const [testing, setTesting] = useState<{ llm: boolean; embedder: boolean; qdrant: boolean; marker: boolean }>({ llm: false, embedder: false, qdrant: false, marker: false })
+  const [testResults, setTestResults] = useState<{ llm?: TestResult; embedder?: TestResult; qdrant?: TestResult; pdfProvider?: TestResult & { provider?: string } }>({})
+  const [testing, setTesting] = useState<{ llm: boolean; embedder: boolean; qdrant: boolean; pdfProvider: boolean }>({ llm: false, embedder: false, qdrant: false, pdfProvider: false })
 
   const [showNewUser, setShowNewUser] = useState(false)
   const [newUser, setNewUser] = useState({ email: '', password: '', name: '', role: 'user' })
@@ -139,7 +139,7 @@ export default function Admin() {
     }
   }
 
-  const testService = async (service: 'llm' | 'embedder' | 'qdrant' | 'marker') => {
+  const testService = async (service: 'llm' | 'embedder' | 'qdrant' | 'pdfProvider') => {
     setTesting(prev => ({ ...prev, [service]: true }))
     setTestResults(prev => ({ ...prev, [service]: undefined }))
     try {
@@ -148,8 +148,8 @@ export default function Admin() {
         result = await api.admin.testLlm()
       } else if (service === 'embedder') {
         result = await api.admin.testEmbedder()
-      } else if (service === 'marker') {
-        result = await api.admin.testMarker()
+      } else if (service === 'pdfProvider') {
+        result = await api.admin.testPdfProvider()
       } else {
         result = await api.admin.testQdrant()
       }
@@ -343,32 +343,38 @@ export default function Admin() {
                       </div>
                     ))}
                     
-                    {/* Marker OCR Service */}
+                    {/* PDF Provider Service */}
                     <div className="bg-dark-800 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Server className="w-5 h-5 text-dark-400" />
-                          <span className="font-medium text-white">Marker OCR</span>
+                          <span className="font-medium text-white">
+                            {testResults.pdfProvider?.provider === 'docling-api' ? 'Docling API' :
+                             testResults.pdfProvider?.provider === 'marker-api' ? 'Marker API' :
+                             testResults.pdfProvider?.provider === 'docling' ? 'Docling (Local)' :
+                             testResults.pdfProvider?.provider === 'pypdf2' ? 'PyPDF2' : 'PDF Provider'}
+                          </span>
                         </div>
-                        {testResults.marker?.status === 'connected' && <CheckCircle className="w-5 h-5 text-green-500" />}
-                        {testResults.marker?.status === 'not_configured' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
-                        {testResults.marker?.status === 'error' && <XCircle className="w-5 h-5 text-red-500" />}
+                        {testResults.pdfProvider?.status === 'connected' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                        {testResults.pdfProvider?.status === 'available' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                        {testResults.pdfProvider?.status === 'not_configured' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
+                        {testResults.pdfProvider?.status === 'error' && <XCircle className="w-5 h-5 text-red-500" />}
                       </div>
-                      {testResults.marker?.url && (
-                        <p className="text-xs text-dark-500 truncate mb-1">{testResults.marker.url}</p>
+                      {testResults.pdfProvider?.url && (
+                        <p className="text-xs text-dark-500 truncate mb-1">{testResults.pdfProvider.url}</p>
                       )}
-                      {testResults.marker?.message && (
-                        <p className="text-xs text-dark-400 mb-2">{testResults.marker.message}</p>
+                      {testResults.pdfProvider?.message && (
+                        <p className="text-xs text-dark-400 mb-2">{testResults.pdfProvider.message}</p>
                       )}
-                      {testResults.marker?.error && (
-                        <p className="text-xs text-red-400 truncate mb-2">{testResults.marker.error}</p>
+                      {testResults.pdfProvider?.error && (
+                        <p className="text-xs text-red-400 truncate mb-2">{testResults.pdfProvider.error}</p>
                       )}
                       <button
-                        onClick={() => testService('marker')}
-                        disabled={testing.marker}
+                        onClick={() => testService('pdfProvider')}
+                        disabled={testing.pdfProvider}
                         className="mt-2 w-full px-2 py-1 bg-dark-700 hover:bg-dark-600 text-xs text-dark-300 rounded disabled:opacity-50"
                       >
-                        {testing.marker ? 'Testing...' : 'Test OCR Service'}
+                        {testing.pdfProvider ? 'Testing...' : 'Test PDF Provider'}
                       </button>
                     </div>
                   </div>

@@ -202,12 +202,13 @@ export const api = {
       total_collections?: number
       error?: string
     }>('/admin/test/qdrant'),
-    testMarker: () => fetchApi<{
+    testPdfProvider: () => fetchApi<{
       status: string
+      provider: string
       url?: string
       message?: string
       error?: string
-    }>('/admin/test/marker'),
+    }>('/admin/test/pdf-provider'),
     toggleWorkspacePin: (workspaceId: number) => fetchApi<{ id: number; admin_pinned: boolean }>(`/admin/workspaces/${workspaceId}/pin`, { method: 'PUT' }),
   },
 

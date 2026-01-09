@@ -46,6 +46,12 @@ When given context or documents, use them to inform your answers."""
     LLM_API_KEY: str = ""
     LLM_MODEL: str = "default"
     
+    # LLM Generation Parameters (Qwen3-80B optimized defaults)
+    LLM_TEMPERATURE: float = 0.7  # Default temperature for chat
+    LLM_TEMPERATURE_TOOL: float = 0.2  # Lower temp for tool calling decisions
+    LLM_TOP_P: float = 0.9  # Nucleus sampling
+    LLM_REPETITION_PENALTY: float = 1.05  # Slight penalty to avoid repetition
+    
     # Embedder (OpenAI-compatible API)
     EMBEDDER_BASE_URL: str = "http://172.17.0.1:8001/v1"
     EMBEDDER_API_KEY: str = ""

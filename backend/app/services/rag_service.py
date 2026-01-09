@@ -79,6 +79,45 @@ class RAGService:
                 }
             )
     
+    def _extract_chunk_metadata(self, chunk: str, chunk_index: int) -> dict:
+        """Extract rich metadata from a chunk for better filtering and retrieval"""
+        import re
+        
+        metadata = {
+            "chunk_index": chunk_index,
+            "char_count": len(chunk),
+            "word_count": len(chunk.split()),
+        }
+        
+        # Detect content type
+        has_table = bool(re.search(r'\|[^\n]+\|', chunk))
+        has_code = bool(re.search(r'```[\s\S]*?```', chunk))
+        has_list = bool(re.search(r'^\s*[-*•]\s', chunk, re.MULTILINE))
+        has_header = bool(re.search(r'^#{1,6}\s', chunk, re.MULTILINE))
+        
+        metadata["has_table"] = has_table
+        metadata["has_code"] = has_code
+        metadata["has_list"] = has_list
+        metadata["has_header"] = has_header
+        
+        # Determine primary content type
+        if has_table:
+            metadata["content_type"] = "table"
+        elif has_code:
+            metadata["content_type"] = "code"
+        elif has_list:
+            metadata["content_type"] = "list"
+        else:
+            metadata["content_type"] = "text"
+        
+        # Extract section title if chunk starts with header
+        header_match = re.match(r'^(#{1,6})\s+(.+?)(?:\n|$)', chunk)
+        if header_match:
+            metadata["section_level"] = len(header_match.group(1))
+            metadata["section_title"] = header_match.group(2).strip()
+        
+        return metadata
+    
     async def add_document(
         self,
         workspace_id: int,
@@ -86,7 +125,7 @@ class RAGService:
         chunks: List[str],
         metadata: Optional[dict] = None
     ):
-        """Add document chunks with both dense and sparse vectors"""
+        """Add document chunks with both dense and sparse vectors and rich metadata"""
         await self.ensure_collection(workspace_id)
         collection_name = self._collection_name(workspace_id)
         
@@ -97,24 +136,33 @@ class RAGService:
             point_id = str(uuid.uuid4())
             sparse_vec = self._text_to_sparse(chunk)
             
+            # Extract rich metadata from chunk content
+            chunk_metadata = self._extract_chunk_metadata(chunk, i)
+            
+            # Merge with document-level metadata
+            full_metadata = {
+                "document_id": document_id,
+                "content": chunk,
+                "total_chunks": len(chunks),
+                **chunk_metadata,
+                **(metadata or {})
+            }
+            
             points.append(PointStruct(
                 id=point_id,
                 vector={
                     "dense": embedding,
                     "sparse": sparse_vec
                 },
-                payload={
-                    "document_id": document_id,
-                    "chunk_index": i,
-                    "content": chunk,
-                    **(metadata or {})
-                }
+                payload=full_metadata
             ))
         
         self.client.upsert(
             collection_name=collection_name,
             points=points
         )
+        
+        print(f"Added {len(points)} chunks to Qdrant for document {document_id}")
     
     async def search(
         self,
@@ -180,6 +228,11 @@ class RAGService:
                         "document_id": item["hit"].payload.get("document_id"),
                         "filename": item["hit"].payload.get("filename", ""),
                         "chunk_index": item["hit"].payload.get("chunk_index", 0),
+                        "content_type": item["hit"].payload.get("content_type", "text"),
+                        "section_title": item["hit"].payload.get("section_title", ""),
+                        "has_table": item["hit"].payload.get("has_table", False),
+                        "has_code": item["hit"].payload.get("has_code", False),
+                        "word_count": item["hit"].payload.get("word_count", 0),
                         "score": item["score"]
                     }
                     for item in sorted_results
@@ -208,6 +261,11 @@ class RAGService:
                     "document_id": hit.payload.get("document_id"),
                     "filename": hit.payload.get("filename", ""),
                     "chunk_index": hit.payload.get("chunk_index", 0),
+                    "content_type": hit.payload.get("content_type", "text"),
+                    "section_title": hit.payload.get("section_title", ""),
+                    "has_table": hit.payload.get("has_table", False),
+                    "has_code": hit.payload.get("has_code", False),
+                    "word_count": hit.payload.get("word_count", 0),
                     "score": hit.score
                 }
                 for hit in results.points

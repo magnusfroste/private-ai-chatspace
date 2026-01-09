@@ -16,6 +16,12 @@ class LLMService:
         self.system_ratio = settings.CONTEXT_SYSTEM_RATIO
         self.user_ratio = settings.CONTEXT_USER_RATIO
         
+        # LLM generation parameters (from config - single source of truth)
+        self.temperature = settings.LLM_TEMPERATURE
+        self.temperature_tool = settings.LLM_TEMPERATURE_TOOL
+        self.top_p = settings.LLM_TOP_P
+        self.repetition_penalty = settings.LLM_REPETITION_PENALTY
+        
         # Calculate token limits
         self.history_limit = int(self.max_context_tokens * self.history_ratio)
         self.system_limit = int(self.max_context_tokens * self.system_ratio)
@@ -192,8 +198,9 @@ class LLMService:
                     "messages": full_messages,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
+                    "top_p": self.top_p,
                     "stream": True,
-                    "repetition_penalty": 1.1,  # Prevent repetitive text
+                    "repetition_penalty": self.repetition_penalty,
                 }
             ) as response:
                 response.raise_for_status()
@@ -217,16 +224,19 @@ class LLMService:
         system_prompt: Optional[str] = None,
         rag_context: Optional[str] = None,
         file_content: Optional[str] = None,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
+        temperature: Optional[float] = None,  # Uses self.temperature_tool if not specified
+        max_tokens: int = 512,  # Shorter for tool decisions
     ) -> Dict[str, Any]:
         """
         Chat completion with tool calling support for MCP integration.
         Returns response with potential tool_calls that need to be executed.
         """
+        # Use lower temperature for tool calling (from config)
+        if temperature is None:
+            temperature = self.temperature_tool
         full_messages = []
         
-        # Build combined system prompt
+        # Build combined system prompt with tool guidance
         combined_prompt = self._build_system_prompt(system_prompt, rag_context, file_content)
         if combined_prompt:
             full_messages.append({"role": "system", "content": combined_prompt})
@@ -247,6 +257,7 @@ class LLMService:
                     "tools": tools,
                     "tool_choice": "auto",  # Let LLM decide when to use tools
                     "temperature": temperature,
+                    "top_p": self.top_p,
                     "max_tokens": max_tokens,
                     "stream": False,
                 }
@@ -292,6 +303,7 @@ class LLMService:
                     "tools": tools,
                     "tool_choice": "auto",
                     "temperature": temperature,
+                    "top_p": self.top_p,
                     "max_tokens": max_tokens,
                     "stream": True,
                 }

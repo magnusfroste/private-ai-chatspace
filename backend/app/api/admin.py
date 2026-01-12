@@ -9,7 +9,8 @@ import time
 import os
 from app.core.database import get_db
 from app.core.config import settings
-from app.core.security import get_current_admin, get_password_hash
+from app.core.security import get_current_admin, get_password_hash, security
+from fastapi.security import HTTPAuthorizationCredentials
 from app.models.user import User
 from app.models.workspace import Workspace
 from app.models.document import Document
@@ -1202,11 +1203,14 @@ async def create_ab_test_run(
 async def execute_ab_test_run(
     run_id: int,
     anythingllm_api_key: str = Query(..., description="AnythingLLM API key"),
-    privateai_token: Optional[str] = Query(None, description="Private AI auth token (optional if same instance)"),
+    privateai_api_key: Optional[str] = Query(None, description="Private AI API key (pk_xxx) or leave empty to use current session"),
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(get_current_admin)
+    admin: User = Depends(get_current_admin),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     """Execute an A/B test run - queries both systems and evaluates results"""
+    # Use provided API key or fall back to current session token
+    privateai_token = privateai_api_key or credentials.credentials
     result = await db.execute(
         select(ABTestRun).where(ABTestRun.id == run_id)
     )
@@ -1252,39 +1256,32 @@ async def execute_ab_test_run(
                 except Exception as e:
                     query.anythingllm_answer = f"Error: {str(e)}"
                 
-                # Query Private AI
+                # Query Private AI using the simple v1 API
                 try:
                     start_time = time.time()
-                    headers = {}
+                    headers = {"Content-Type": "application/json"}
                     if privateai_token:
                         headers["Authorization"] = f"Bearer {privateai_token}"
                     
+                    # Use the new simple v1 API endpoint
                     pai_response = await client.post(
-                        f"{run.privateai_url}/api/chat/workspace/{run.privateai_workspace_id}/stream",
+                        f"{run.privateai_url}/api/v1/workspace/{run.privateai_workspace_id}/query",
                         headers=headers,
-                        json={"message": query.query, "rag_enabled": True}
+                        json={"message": query.query, "mode": "query"},
+                        timeout=120.0
                     )
                     pai_latency = (time.time() - start_time) * 1000
                     
                     if pai_response.status_code == 200:
-                        # Handle SSE response
-                        full_response = ""
-                        sources = []
-                        for line in pai_response.text.split("\n"):
-                            if line.startswith("data: "):
-                                try:
-                                    import json
-                                    data = json.loads(line[6:])
-                                    if data.get("type") == "content":
-                                        full_response += data.get("content", "")
-                                    elif data.get("type") == "sources":
-                                        sources = data.get("sources", [])
-                                except:
-                                    pass
+                        data = pai_response.json()
+                        query.privateai_answer = data.get("response", "")
+                        query.privateai_latency = data.get("latency_ms", pai_latency)
                         
-                        query.privateai_answer = full_response
-                        query.privateai_latency = pai_latency
+                        # Extract sources
+                        sources = data.get("sources", [])
                         query.privateai_retrieved_docs = [s.get("filename", "unknown") for s in sources]
+                    else:
+                        query.privateai_answer = f"Error: HTTP {pai_response.status_code} - {pai_response.text[:200]}"
                 except Exception as e:
                     query.privateai_answer = f"Error: {str(e)}"
                 

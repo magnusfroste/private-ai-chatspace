@@ -88,6 +88,7 @@ export default function ABTestEvaluator() {
   const [anythingllmApiKey, setAnythingllmApiKey] = useState('')
   const [anythingllmWorkspace, setAnythingllmWorkspace] = useState('rag-test')
   const [privateaiUrl, setPrivateaiUrl] = useState('http://localhost:8000')
+  const [privateaiApiKey, setPrivateaiApiKey] = useState('')
   const [privateaiWorkspaceId, setPrivateaiWorkspaceId] = useState('2')
   const [queries, setQueries] = useState<TestQuery[]>([
     { id: 'q1', query: '', category: 'technical', ground_truth_docs: [] }
@@ -193,9 +194,14 @@ export default function ABTestEvaluator() {
     setExecuting(true)
     try {
       const token = useAuthStore.getState().token
-      const response = await fetch(
-        `/api/admin/abtest/runs/${runId}/execute?anythingllm_api_key=${encodeURIComponent(anythingllmApiKey)}`,
-        {
+      let url = `/api/admin/abtest/runs/${runId}/execute?anythingllm_api_key=${encodeURIComponent(anythingllmApiKey)}`
+      
+      // Add Private AI API key if provided (for remote instances)
+      if (privateaiApiKey) {
+        url += `&privateai_api_key=${encodeURIComponent(privateaiApiKey)}`
+      }
+      
+      const response = await fetch(url, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -451,6 +457,16 @@ export default function ABTestEvaluator() {
                   type="text"
                   value={privateaiUrl}
                   onChange={(e) => setPrivateaiUrl(e.target.value)}
+                  className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-dark-400 mb-1">API Key (for remote instances)</label>
+                <input
+                  type="password"
+                  value={privateaiApiKey}
+                  onChange={(e) => setPrivateaiApiKey(e.target.value)}
+                  placeholder="pk_xxx or leave empty for localhost"
                   className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white text-sm"
                 />
               </div>

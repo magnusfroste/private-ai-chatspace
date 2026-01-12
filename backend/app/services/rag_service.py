@@ -28,15 +28,23 @@ class RAGService:
             self.client = QdrantClient(url=url, timeout=60)
         self._dimension = None  # Will be detected from embedder
         
-        # Initialize cross-encoder for reranking
-        self.reranker = None
-        if CROSS_ENCODER_AVAILABLE:
-            try:
-                self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
-                print("Cross-encoder reranker loaded successfully")
-            except Exception as e:
-                print(f"Failed to load cross-encoder: {e}")
-                self.reranker = None
+        # Lazy-load cross-encoder for reranking (speeds up startup)
+        self._reranker = None
+        self._reranker_loaded = False
+    
+    @property
+    def reranker(self):
+        """Lazy-load reranker on first use"""
+        if not self._reranker_loaded:
+            self._reranker_loaded = True
+            if CROSS_ENCODER_AVAILABLE:
+                try:
+                    self._reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+                    print("Cross-encoder reranker loaded successfully (lazy)")
+                except Exception as e:
+                    print(f"Failed to load cross-encoder: {e}")
+                    self._reranker = None
+        return self._reranker
     
     def _collection_name(self, workspace_id: int) -> str:
         return f"workspace_{workspace_id}"

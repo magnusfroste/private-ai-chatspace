@@ -11,7 +11,8 @@ import {
   Download,
   Upload,
   FileText,
-  Eye
+  Eye,
+  Search
 } from 'lucide-react'
 
 interface DocumentsSidebarProps {
@@ -44,6 +45,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
   const [embeddingStatus, setEmbeddingStatus] = useState<{[key: number]: 'idle' | 'embedding' | 'success' | 'error'}>({})
   const [docStats, setDocStats] = useState<{[key: number]: DocStats | null}>({})
   const [loadingStats, setLoadingStats] = useState<{[key: number]: boolean}>({})
+  const [searchTerm, setSearchTerm] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -111,6 +113,22 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
   const closeViewer = () => {
     setViewingDoc(null)
     setDocContent('')
+    setSearchTerm('')
+  }
+
+  const highlightSearchTerm = (text: string, term: string): React.ReactNode => {
+    if (!term.trim()) return text
+    
+    const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+    const parts = text.split(regex)
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <mark key={index} className="bg-yellow-400 text-black px-0.5 rounded">{part}</mark>
+      ) : (
+        part
+      )
+    )
   }
 
   const loadStats = async (docId: number) => {
@@ -305,6 +323,28 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             </div>
           </div>
           
+          {/* Search bar */}
+          <div className="px-4 py-2 border-b border-dark-700">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search in document..."
+                className="w-full pl-9 pr-3 py-2 bg-dark-900 border border-dark-600 rounded-lg text-sm text-white placeholder-dark-500 focus:outline-none focus:border-blue-500"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+          
           <div className="flex-1 overflow-y-auto p-4">
             {loadingContent ? (
               <div className="flex items-center justify-center h-full">
@@ -313,7 +353,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             ) : (
               <div className="bg-dark-900 border border-dark-600 rounded p-4">
                 <div className="prose prose-invert prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap text-dark-200 text-sm font-mono">{docContent}</pre>
+                  <pre className="whitespace-pre-wrap text-dark-200 text-sm font-mono">{highlightSearchTerm(docContent, searchTerm)}</pre>
                 </div>
               </div>
             )}

@@ -1,13 +1,27 @@
 import { useState } from 'react'
 import { Copy, Check, ChevronDown, ChevronUp, Globe, StickyNote, Database, FileText } from 'lucide-react'
 import renderMarkdown from '../utils/renderMarkdown'
+import CitationModal from './CitationModal'
+
+interface Chunk {
+  text: string
+  score: number
+}
+
+interface Source {
+  num: number
+  filename?: string
+  title?: string
+  url?: string
+  type: 'rag' | 'web'
+  chunks?: Chunk[]
+}
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
   content: string
-  sources?: Array<{ num: number; filename?: string; title?: string; url?: string; type: 'rag' | 'web' }>
+  sources?: Source[]
   onSendToNotes?: (content: string) => void
-  onOpenSource?: (filename: string) => void
 }
 
 function UserMessage({ content }: { content: string }) {
@@ -46,10 +60,11 @@ function UserMessage({ content }: { content: string }) {
   )
 }
 
-export default function ChatMessage({ role, content, sources, onSendToNotes, onOpenSource }: ChatMessageProps) {
+export default function ChatMessage({ role, content, sources, onSendToNotes }: ChatMessageProps) {
   const isUser = role === 'user'
   const [copied, setCopied] = useState(false)
   const [sentToNotes, setSentToNotes] = useState(false)
+  const [selectedSource, setSelectedSource] = useState<Source | null>(null)
 
   const handleCopyMessage = async () => {
     await navigator.clipboard.writeText(content)
@@ -114,11 +129,14 @@ export default function ChatMessage({ role, content, sources, onSendToNotes, onO
                         </a>
                       ) : (
                         <button
-                          onClick={() => onOpenSource?.(source.filename || '')}
+                          onClick={() => setSelectedSource(source)}
                           className="flex-1 text-left hover:text-blue-400 transition-colors cursor-pointer flex items-center gap-1"
                         >
                           <FileText className="w-3 h-3" />
-                          {source.filename}
+                          <span>{source.filename}</span>
+                          {source.chunks && source.chunks.length > 1 && (
+                            <span className="text-dark-500">({source.chunks.length} chunks)</span>
+                          )}
                         </button>
                       )}
                     </div>
@@ -169,6 +187,15 @@ export default function ChatMessage({ role, content, sources, onSendToNotes, onO
           </div>
         )}
       </div>
+      
+      {/* Citation Modal */}
+      {selectedSource && (
+        <CitationModal
+          isOpen={!!selectedSource}
+          onClose={() => setSelectedSource(null)}
+          source={selectedSource}
+        />
+      )}
     </div>
   )
 }

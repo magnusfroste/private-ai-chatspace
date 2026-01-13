@@ -277,8 +277,24 @@ async def send_message(
                 source_num = seen_files[filename]
                 # Include filename in context so LLM knows what to cite
                 context_parts.append(f"[{source_num}] (Source: {filename})\n{r['content']}")
-                if filename not in [s["filename"] for s in rag_sources]:
-                    rag_sources.append({"num": source_num, "filename": filename, "type": "rag"})
+                
+                # Find or create source entry with chunks for citation modal
+                existing_source = next((s for s in rag_sources if s["filename"] == filename), None)
+                if existing_source:
+                    existing_source["chunks"].append({
+                        "text": r['content'],
+                        "score": r.get('score', 0)
+                    })
+                else:
+                    rag_sources.append({
+                        "num": source_num, 
+                        "filename": filename, 
+                        "type": "rag",
+                        "chunks": [{
+                            "text": r['content'],
+                            "score": r.get('score', 0)
+                        }]
+                    })
             rag_context = "\n\n---\n\n".join(context_parts)
     
     # Prepare web search tool for LLM (if enabled)
@@ -558,8 +574,24 @@ async def send_message_with_files(
                 source_num = seen_files[filename]
                 # Include filename in context so LLM knows what to cite
                 context_parts.append(f"[{source_num}] (Source: {filename})\n{r['content']}")
-                if filename not in [s["filename"] for s in rag_sources]:
-                    rag_sources.append({"num": source_num, "filename": filename, "type": "rag"})
+                
+                # Find or create source entry with chunks for citation modal
+                existing_source = next((s for s in rag_sources if s["filename"] == filename), None)
+                if existing_source:
+                    existing_source["chunks"].append({
+                        "text": r['content'],
+                        "score": r.get('score', 0)
+                    })
+                else:
+                    rag_sources.append({
+                        "num": source_num, 
+                        "filename": filename, 
+                        "type": "rag",
+                        "chunks": [{
+                            "text": r['content'],
+                            "score": r.get('score', 0)
+                        }]
+                    })
             rag_context = "\n\n---\n\n".join(context_parts)
     
     # Web search via external agent (n8n)

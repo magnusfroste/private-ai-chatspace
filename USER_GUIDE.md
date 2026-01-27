@@ -1,217 +1,217 @@
-# Chatspace - Private AI - Användarguide
+# Chatspace - Private AI - User Guide
 
-## Välkommen till Chatspace - Private AI! 👋
+## Welcome to Chatspace - Private AI! 👋
 
-Chatspace - Private AI är din privata AI-assistent som hjälper dig att chatta med dina dokument och få svar baserat på din egen kunskap. Allt stannar på era egna servrar - ingen data lämnar er miljö.
-
----
-
-## Snabbstart
-
-### 1. Skapa ett Workspace (Arbetsrum)
-Ett workspace är som ett projekt eller ett kunskapsområde. Skapa ett för varje team, projekt eller ämne.
-
-**Exempel:**
-- "HR-dokument"
-- "Produktmanualer"
-- "Juridiska avtal"
-- "Teknisk dokumentation"
-
-### 2. Ladda upp dokument
-Lägg till de dokument som AI:n ska kunna svara utifrån. Stödjer PDF, Word, text och markdown-filer.
-
-### 3. Börja chatta!
-Ställ frågor och få svar baserade på dina dokument.
+Welcome to Chatspace - Private AI - your private AI assistant that helps you chat with your documents and get answers based on your own knowledge. Everything stays on your own servers - no data leaves your environment.
 
 ---
 
-## Hur fungerar det? 🤔
+## Quick Start
 
-### Två sätt att använda dokument
+### 1. Create a Workspace (Workspace)
+A workspace is like a project or knowledge area. Create one for each team, project, or topic.
 
-#### 📚 RAG - Workspace-dokument (Kunskapsbas)
-**Vad är det?**
-Tänk dig ett bibliotek där AI:n kan söka efter information när den behöver det.
+**Examples:**
+- "HR documents"
+- "Product manuals"
+- "Legal agreements"
+- "Technical documentation"
 
-**Hur fungerar det?**
-1. Du laddar upp dokument till ditt workspace
-2. Dokumenten indexeras (görs sökbara)
-3. När du ställer en fråga söker AI:n automatiskt i dokumenten
-4. AI:n använder relevant information för att svara
+### 2. Upload documents
+Add the documents that AI should answer based on. Supports PDF, Word, text, and markdown files.
 
-**När ska jag använda det?**
-- Dokument som ska användas i många chattar
-- Kunskapsbas för hela teamet
-- Manualer, policys, rutiner
+### 3. Start chatting!
+Ask questions and get answers based on your documents.
 
-**Exempel:**
+---
+
+## How does it work? 🤔
+
+### Two ways to use documents
+
+#### 📚 RAG - Workspace documents (Knowledge base)
+**What is it?**
+Think of it as a library where AI can search for information when needed.
+
+**How does it work?**
+1. You upload documents to your workspace
+2. Documents are indexed (made searchable)
+3. When you ask a question, AI searches the documents automatically
+4. AI uses relevant information to answer
+
+**When to use it?**
+- Documents to be used in many chats
+- Knowledge base for the entire team
+- Manuals, policies, routines
+
+**Example:**
 ```
-Du: "Vad är vår policy för distansarbete?"
-AI: [Söker i HR-dokument] → "Enligt er policy..."
+You: "What is our remote work policy?"
+AI: [Searches in HR documents] → "According to our policy..."
 ```
 
-#### 📎 CAG - Bifogade filer (Direkta frågor)
-**Vad är det?**
-Ladda upp en fil direkt i chatten för att ställa frågor om just den filen.
+#### 📎 CAG - Attached files (Direct questions)
+**What is it?**
+Upload a file directly in the chat to ask questions about that specific file.
 
-**Hur fungerar det?**
-1. Du bifogar en fil i chattmeddelandet
-2. AI:n läser hela filen direkt
-3. AI:n svarar baserat på filens innehåll
+**How does it work?**
+1. You attach a file in the chat message
+2. AI reads the entire file directly
+3. AI answers based on the file's content
 
-**När ska jag använda det?**
-- Engångsfrågor om specifika dokument
-- Jämföra dokument
-- Analysera nya dokument
+**When to use it?**
+- One-off questions about specific documents
+- Comparing documents
+- Analyzing new documents
 
-**Exempel:**
+**Example:**
 ```
-Du: [Bifogar kontrakt.pdf] "Sammanfatta detta avtal"
-AI: [Läser filen] → "Avtalet handlar om..."
+You: [Attach contract.pdf] "Summarize this agreement"
+AI: [Reads the file] → "The agreement is about..."
 ```
 
 ---
 
-## Hur fungerar sökningen? 🔍
+## How does the search work? 🔍
 
-När AI:n söker i dina dokument använder den **två olika metoder samtidigt** för bästa resultat:
+When AI searches your documents, it uses **two different methods simultaneously** for the best results:
 
-### 1. 🔤 Keyword-sökning (Nyckelordssökning)
-**Enkelt förklarat:** Söker efter exakta ord och fraser.
+### 1. 🔤 Keyword search (Keyword search)
+**Simply explained:** Searches for exact words and phrases.
 
-**Exempel:**
-- Du frågar: "Vad är vår GDPR-policy?"
-- Söker efter: "GDPR", "policy", "dataskydd"
-- Hittar dokument som innehåller dessa ord
+**Example:**
+- You ask: "What is our GDPR policy?"
+- Searches for: "GDPR", "policy", "data protection"
+- Finds documents containing these words
 
-**Bra för:**
-- Specifika termer
-- Produktnamn
-- Juridiska begrepp
-- Akronymer
+**Good for:**
+- Specific terms
+- Product names
+- Legal concepts
+- Acronyms
 
-### 2. 🧠 Semantisk sökning (Betydelsesökning)
-**Enkelt förklarat:** Förstår vad du menar, inte bara orden du använder.
+### 2. 🧠 Semantic search (Meaning search)
+**Simply explained:** Understands what you mean, not just the words you use.
 
-**Exempel:**
-- Du frågar: "Hur hanterar vi kunddata?"
-- Förstår att du menar: dataskydd, integritet, GDPR
-- Hittar relevanta dokument även om de inte använder exakt dina ord
+**Example:**
+- You ask: "How do we handle customer data?"
+- Understands that you mean: data protection, privacy, GDPR
+- Finds relevant documents even if they don't use your exact words
 
-**Bra för:**
-- Konceptuella frågor
-- Olika sätt att uttrycka samma sak
-- Hitta relaterad information
+**Good for:**
+- Conceptual questions
+- Different ways to express the same thing
+- Finding related information
 
-### 🎯 Hybrid-sökning (Standard)
-**Bäst av båda världar!**
-Chatspace - Private AI kombinerar båda metoderna automatiskt för att ge dig de bästa resultaten.
+### 🎯 Hybrid search (Standard)
+**Best of both worlds!**
+Chatspace - Private AI combines both methods automatically for the best results.
 
 ---
 
-## Avancerade inställningar ⚙️
+## Advanced settings ⚙️
 
-**Behöver jag ändra dessa?**
-**Nej!** Standardinställningarna fungerar utmärkt för 95% av användningsfall.
+**Do I need to change these?**
+**NO!** The standard settings work great for 95% of use cases.
 
-Men om du vill finjustera finns dessa alternativ:
+But if you want to fine-tune, here are the options:
 
-### Antal resultat (top_n)
-**Standard:** 5 dokument
-- **Färre (3):** Snabbare svar, mer fokuserade
-- **Fler (10):** Mer omfattande, kan bli långsammare
+### Number of results (top_n)
+**Standard:** 5 documents
+- **Fewer (3):** Faster responses, more focused
+- **More (10):** More comprehensive, may be slower
 
-### Likhetströskel (similarity threshold)
+### Similarity threshold (similarity threshold)
 **Standard:** 0.25
-- **Högre (0.5):** Bara mycket relevanta resultat
-- **Lägre (0.1):** Fler resultat, även mindre relevanta
+- **Higher (0.5):** Only very relevant results
+- **Lower (0.1):** More results, even less relevant
 
-### Hybrid-sökning
-**Standard:** PÅ
-- **Rekommendation:** Låt den vara på!
+### Hybrid search
+**Standard:** ON
+- **Recommendation:** Keep it on!
 
-### Web-sökning
-**Standard:** AV
-- **När ska jag slå på den?**
-  - Aktuella nyheter
-  - Realtidsinformation
-  - Fakta utanför era dokument
+### Web search
+**Standard:** OFF
+- **When to turn it on?**
+  - Current news
+  - Real-time information
+  - Facts outside your documents
 
 ---
 
-## Chat-lägen 💬
+## Chat modes 💬
 
-### Chat-läge (Standard)
-AI:n svarar alltid, även om den inte hittar relevant information i dokumenten.
+### Chat mode (Standard)
+AI always responds, even if it doesn't find relevant information in the documents.
 
-**Använd när:**
-- Du vill ha konversation
-- Allmänna frågor
+**Use when:**
+- You want conversation
+- General questions
 - Brainstorming
 
-### Query-läge
-AI:n svarar **bara** om den hittar relevant information i dina dokument.
+### Query mode
+AI **only** responds if it finds relevant information in your documents.
 
-**Använd när:**
-- Du bara vill ha svar från era dokument
-- Säkerställa att svaren är baserade på er kunskap
-- Undvika gissningar
+**Use when:**
+- You only want answers from your documents
+- Ensure answers are based on your knowledge
+- Avoid guesses
 
 ---
 
 ## Tips & Tricks 💡
 
-### 📝 Bra dokumenthantering
-- **Namnge tydligt:** "HR_Policy_2024.pdf" istället för "dokument1.pdf"
-- **Håll uppdaterat:** Ta bort gamla versioner
-- **Organisera:** Ett workspace per ämnesområde
+### 📝 Good document management
+- **Name clearly:** "HR_Policy_2024.pdf" instead of "document1.pdf"
+- **Keep updated:** Remove old versions
+- **Organize:** One workspace per topic area
 
-### 🎯 Ställ bra frågor
-- **Specifika:** "Vad är uppsägningstiden för tillsvidareanställda?" 
-- **Inte:** "Berätta om anställningar"
+### 🎯 Ask good questions
+- **Specific:** "What is the notice period for permanent employees?"
+- **Not:** "Tell me about employments"
 
-### 🔄 Kombinera CAG + RAG
-- Bifoga en ny fil OCH få kontext från workspace-dokument
-- Perfekt för att jämföra nya dokument mot befintliga policys
+### 🔄 Combine CAG + RAG
+- Attach a new file AND get context from workspace documents
+- Perfect for comparing new documents to existing policies
 
-### 🌐 Web-sökning smart
-- Slå på bara när du behöver aktuell information
-- Slå av för att spara tid på interna frågor
-
----
-
-## Vanliga frågor ❓
-
-### Hur många dokument kan jag ladda upp?
-Så många du vill! Men tänk på att hålla dem relevanta för workspace-ämnet.
-
-### Hur lång tid tar det att indexera dokument?
-Vanligtvis några sekunder per dokument. Större dokument tar längre tid.
-
-### Kan AI:n se alla mina dokument?
-Bara dokument i det workspace du chattar i. Varje workspace är isolerat.
-
-### Vad händer om AI:n inte hittar svar?
-- **Chat-läge:** Den svarar ändå baserat på sin allmänna kunskap
-- **Query-läge:** Den säger att den inte hittar relevant information
-
-### Är mina data säkra?
-Ja! Allt körs på era egna servrar. Ingen data skickas till externa tjänster.
-
-### Kan jag dela workspaces med kollegor?
-Nej, dina workspaces är privata. Bara du och administratörer kan se dina workspaces. Detta säkerställer att din data förblir konfidentiell.
+### 🌐 Web search smart
+- Turn on only when you need current information
+- Turn off for internal questions (faster)
 
 ---
 
-## Behöver du hjälp? 🆘
+## Common questions ❓
 
-Kontakta er IT-avdelning eller systemadministratör för:
-- Tekniska problem
-- Åtkomstfrågor
-- Nya funktionsönskemål
+### How many documents can I upload?
+As many as you want! But think about keeping them relevant to the workspace topic.
+
+### How long does it take to index documents?
+Usually a few seconds per document. Larger documents take longer.
+
+### Can AI see all my documents?
+Only documents in the workspace you're chatting in. Each workspace is isolated.
+
+### What happens if AI doesn't find answers?
+- **Chat mode:** It responds anyway based on its general knowledge
+- **Query mode:** It says it doesn't find relevant information
+
+### Is my data safe?
+Yes! Everything runs on your own servers. No data is sent to external services.
+
+### Can I share workspaces with colleagues?
+No, your workspaces are private. Only you and administrators can see your workspaces. This ensures that your data remains confidential.
 
 ---
 
-**Lycka till med Chatspace - Private AI!** 🚀
+## Need help? 🆘
 
-*Privat AI för ditt team - säkert, smart och enkelt.*
+Contact your IT department or system administrator for:
+- Technical problems
+- Access issues
+- New feature requests
+
+---
+
+**Good luck with Chatspace - Private AI!** 🚀
+
+*Private AI for your team - safe, smart, and easy.*

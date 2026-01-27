@@ -1,81 +1,83 @@
-# Chatspace - Private AI - Snabbguide
+# Chatspace - Private AI - Quick Reference
 
-## 🚀 Kom igång på 3 steg
+## Get started in 3 steps
 
-1. **Skapa Workspace** → Ditt arbetsrum för ett ämne/projekt
-2. **Ladda upp dokument** → Din kunskapsbas
-3. **Chatta!** → Ställ frågor och få svar
+1. **Create Workspace** → Your workspace for a topic/project
+2. **Upload documents** → Your knowledge base
+3. **Chat!** → Ask questions and get answers
 
 ---
 
-## 📚 Två sätt att använda dokument
+## Two ways to use documents
 
-| | **RAG - Workspace-dokument** | **CAG - Bifogade filer** |
+| | **RAG - Workspace documents** | **CAG - Attached files** |
 |---|---|---|
-| **Ikon** | 📚 | 📎 |
-| **Vad?** | Kunskapsbas för workspace | Fil direkt i chatten |
-| **När?** | Återkommande frågor | Engångsfrågor |
-| **Exempel** | Företagspolicys, manualer | Analysera ett specifikt kontrakt |
+| **Icon** | | |
+| **What?** | Knowledge base for workspace | File directly in chat |
+| **When?** | Recurring questions | One-off questions |
+| **Example** | Company policies, manuals | Analyze a specific contract |
 
 ---
 
-## 🔍 Hur söker AI:n?
+## How does AI search?
 
-### Hybrid-sökning (Standard - rekommenderas!)
-Kombinerar två metoder automatiskt:
+### Hybrid search (Recommended!)
 
-- **🔤 Keyword:** Exakta ord ("GDPR", "policy")
-- **🧠 Semantisk:** Förstår betydelse ("kunddata" = "dataskydd")
+Combines two methods automatically:
 
-**Resultat:** Bästa av båda världar! ✨
+- **Keyword:** Exact words ("GDPR", "policy")
+- **Semantic:** Understands meaning ("customer data" = "data protection")
+
+**Result:** Best of both worlds! 
 
 ---
 
-## ⚙️ Avancerade inställningar
+## Advanced settings
 
-### Behöver jag ändra något?
-**NEJ!** Standardinställningarna fungerar för 95% av fallen.
+### Do I need to change anything?
 
-### Om du vill finjustera:
+**NO!** Standard settings work for 95% of cases.
 
-| Inställning | Standard | Ändra om... |
+### If you want to fine-tune:
+
+| Setting | Standard | Change if... |
 |-------------|----------|-------------|
-| **Antal resultat** | 5 | Du vill snabbare (3) eller mer omfattande (10) svar |
-| **Likhetströskel** | 0.25 | Du vill bara mycket relevanta resultat (0.5) |
-| **Hybrid-sökning** | PÅ | Låt den vara på! |
-| **Web-sökning** | AV | Du behöver aktuella nyheter/realtidsdata |
+| **Number of results** | 5 | You want faster (3) or more comprehensive (10) responses |
+| **Similarity threshold** | 0.25 | You want only very relevant results (0.5) |
+| **Hybrid search** | ON | Keep it on! |
+| **Web search** | OFF | You need current news/real-time data |
 
 ---
 
-## 💬 Chat-lägen
+## Chat modes
 
-| Läge | Beteende | Använd när... |
+| Mode | Behavior | Use when... |
 |------|----------|---------------|
-| **Chat** (Standard) | Svarar alltid | Konversation, brainstorming |
-| **Query** | Svarar bara om info finns i dokument | Du bara vill ha svar från era dokument |
+| **Chat** (Standard) | Responds always | Conversation, brainstorming |
+| **Query** | Responds only if info exists in documents | You only want answers from your documents |
 
 ---
 
-## 💡 Snabbtips
+## Quick tips
 
-✅ **Gör:**
-- Namnge filer tydligt: "HR_Policy_2024.pdf"
-- Ställ specifika frågor: "Vad är uppsägningstiden?"
-- Kombinera RAG + CAG för att jämföra dokument
+**Do:**
+- Name files clearly: "HR_Policy_2024.pdf"
+- Ask specific questions: "What is the termination period?"
+- Combine CAG + RAG for comparing documents
 
-❌ **Undvik:**
-- Vaga frågor: "Berätta om allt"
-- Gamla dokumentversioner i workspace
-- Web-sökning på för alla frågor (slösar tid)
-
----
-
-## 🔒 Säkerhet
-
-✅ Allt körs på era egna servrar  
-✅ Ingen data lämnar er miljö  
-✅ Varje workspace är isolerat  
+**Avoid:**
+- Vague questions: "Tell me everything"
+- Old document versions in workspace
+- Web search for all questions (waste time)
 
 ---
 
-**Behöver du mer hjälp?** → Se [Fullständig användarguide](USER_GUIDE.md)
+## Security
+
+ Everything runs on your own servers  
+ No data leaves your environment  
+ Each workspace is isolated  
+
+---
+
+**Need more help?** → See [Full User Guide](USER_GUIDE.md)

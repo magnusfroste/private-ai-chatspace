@@ -36,3 +36,7 @@ backend/data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Project specific
+RAG_QUALITY_REPORT.md
+ONBOARDING.md

@@ -1,4 +1,4 @@
-# Autoversio - Snabbguide
+# Chatspace - Private AI - Snabbguide
 
 ## 🚀 Kom igång på 3 steg
 

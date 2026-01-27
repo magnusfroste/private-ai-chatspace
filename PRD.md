@@ -1,8 +1,8 @@
-# Autoversio - Product Requirements Document
+# Chatspace - Private AI - Product Requirements Document
 
 ## Executive Summary
 
-Autoversio is an AI-driven chat application built for teams that need sophisticated document management and intelligent search. The system combines Retrieval-Augmented Generation (RAG), hybrid vector search, and intelligent tool calling for external search to provide users with access to both private documents and real-time web information.
+Chatspace - Private AI is an AI-driven chat application built for teams that need sophisticated document management and intelligent search. The system combines Retrieval-Augmented Generation (RAG), hybrid vector search, and intelligent tool calling for external search to provide users with access to both private documents and real-time web information.
 
 **Key Highlights**:
 - **Intelligent Tool Calling**: LLM autonomously decides when to use web search (5-10s when needed vs 45s always)
@@ -396,7 +396,7 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 
 ## Conclusion
 
-AutoVersio provides a complete, production-ready LLM chat application with advanced RAG capabilities, web search integration, and sophisticated document management. The modular architecture supports various LLM and embedding services while maintaining a clean, user-friendly interface focused on productivity and ease of use.
+Chatspace - Private AI provides a complete, production-ready LLM chat application with advanced RAG capabilities, web search integration, and sophisticated document management. The modular architecture supports various LLM and embedding services while maintaining a clean, user-friendly interface focused on productivity and ease of use.
 
 **Implementation Status**: All core features implemented and tested, successfully deployed with remote LLM, embedding, vector database, OCR, and intelligent web search integration. Recent updates include tool calling, multi-file upload, and real-time citation display.
 
@@ -468,7 +468,7 @@ Access at `http://localhost:8000`
 #### Environment Configuration
 Create a `.env` file with the following variables:
 ```env
-ADMIN_EMAIL=admin@autoversio.local
+ADMIN_EMAIL=admin@chatspace.local
 ADMIN_PASSWORD=changeme
 SECRET_KEY=your-secret-key-here
 LLM_BASE_URL=http://llm-service:8000/v1
@@ -480,7 +480,7 @@ EMBEDDER_MODEL=default
 QDRANT_URL=http://qdrant:6333
 FIRECRAWL_API_KEY=your-firecrawl-key
 OCR_SERVICE_URL=https://marker.autoversio.ai
-DATABASE_URL=sqlite+aiosqlite:///data/autoversio.db
+DATABASE_URL=sqlite+aiosqlite:///data/chatspace.db
 ```
 
 ### Easypanel Deployment

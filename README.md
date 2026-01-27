@@ -1,4 +1,4 @@
-# Private AI Chatspace
+# Chatspace - Private AI
 
 A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generation) support. Successfully deployed on Easypanel with remote LLM and embedding services integration. Inspired by AnythingLLM and OpenWebUI, but simpler and focused on quality functionality.
 

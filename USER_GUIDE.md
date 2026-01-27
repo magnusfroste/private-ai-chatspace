@@ -1,8 +1,8 @@
-# Autoversio - Användarguide
+# Chatspace - Private AI - Användarguide
 
-## Välkommen till Autoversio! 👋
+## Välkommen till Chatspace - Private AI! 👋
 
-Autoversio är din privata AI-assistent som hjälper dig att chatta med dina dokument och få svar baserat på din egen kunskap. Allt stannar på era egna servrar - ingen data lämnar er miljö.
+Chatspace - Private AI är din privata AI-assistent som hjälper dig att chatta med dina dokument och få svar baserat på din egen kunskap. Allt stannar på era egna servrar - ingen data lämnar er miljö.
 
 ---
 
@@ -105,7 +105,7 @@ När AI:n söker i dina dokument använder den **två olika metoder samtidigt** 
 
 ### 🎯 Hybrid-sökning (Standard)
 **Bäst av båda världar!**
-Autoversio kombinerar båda metoderna automatiskt för att ge dig de bästa resultaten.
+Chatspace - Private AI kombinerar båda metoderna automatiskt för att ge dig de bästa resultaten.
 
 ---
 
@@ -212,6 +212,6 @@ Kontakta er IT-avdelning eller systemadministratör för:
 
 ---
 
-**Lycka till med Autoversio!** 🚀
+**Lycka till med Chatspace - Private AI!** 🚀
 
 *Privat AI för ditt team - säkert, smart och enkelt.*
